@@ -4,6 +4,11 @@
     <ProjectReference Include="..\MemGuard.Core\MemGuard.Core.csproj" />
   </ItemGroup>
 
+  <ItemGroup>
+    <PackageReference Include="Markdig" />
+    <PackageReference Include="QuestPDF" />
+  </ItemGroup>
+
   <PropertyGroup>
     <TargetFramework>net8.0</TargetFramework>
     <ImplicitUsings>enable</ImplicitUsings>
