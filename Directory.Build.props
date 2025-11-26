@@ -1,0 +1,22 @@
+﻿<Project>
+  <PropertyGroup>
+    <TargetFramework>net8.0</TargetFramework>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <LangVersion>latest</LangVersion>
+    <TreatWarningsAsErrors>false</TreatWarningsAsErrors>
+    <AnalysisMode>AllEnabledByDefault</AnalysisMode>
+    
+    <!-- NuGet Tool Metadata -->
+    <Authors>MemGuard Team</Authors>
+    <Company>MemGuard</Company>
+    <Copyright>Copyright © 2024 MemGuard</Copyright>
+    <PackageLicenseExpression>MIT</PackageLicenseExpression>
+    <PackageProjectUrl>https://github.com/yourusername/MemGuard</PackageProjectUrl>
+    <RepositoryUrl>https://github.com/yourusername/MemGuard</RepositoryUrl>
+    <PackageIcon>icon.png</PackageIcon>
+    <PackageReadmeFile>README.md</PackageReadmeFile>
+    <PackageTags>dotnet;diagnostics;memory;ai;debugging;dump;guard</PackageTags>
+    <Description>AI-powered .NET memory dump analyzer - instantly find root causes and fixes</Description>
+  </PropertyGroup>
+</Project>

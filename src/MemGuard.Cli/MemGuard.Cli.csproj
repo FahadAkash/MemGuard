@@ -1,0 +1,25 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <PackAsTool>true</PackAsTool>
+    <ToolCommandName>memguard</ToolCommandName>
+    <AssemblyName>MemGuard.Cli</AssemblyName>
+    <RootNamespace>MemGuard.Cli</RootNamespace>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Spectre.Console.Cli" />
+    <PackageReference Include="Microsoft.Extensions.Configuration.Json" />
+    <PackageReference Include="Microsoft.Extensions.Hosting" />
+    <PackageReference Include="Microsoft.Extensions.DependencyInjection.Abstractions" />
+    <None Include="..\..\icon.png" Pack="true" PackagePath="\" />
+    <None Include="..\..\README.md" Pack="true" PackagePath="\" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\MemGuard.Core\MemGuard.Core.csproj" />
+    <ProjectReference Include="..\MemGuard.AI\MemGuard.AI.csproj" />
+    <ProjectReference Include="..\MemGuard.Reporters\MemGuard.Reporters.csproj" />
+    <ProjectReference Include="..\MemGuard.Infrastructure\MemGuard.Infrastructure.csproj" />
+  </ItemGroup>
+</Project>
