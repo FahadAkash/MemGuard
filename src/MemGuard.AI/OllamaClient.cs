@@ -6,8 +6,8 @@ namespace MemGuard.AI;
 
 /// <summary>
 /// Ollama implementation of ILLMClient with Polly resilience
-/// NOTE: This is a simplified implementation. For production use with OllamaSharp 2.0,
-/// you'll need to update this based on the actual API methods available.
+/// NOTE: Currently using mock implementation due to OllamaSharp 2.0 API instability.
+/// For production, update when OllamaSharp API stabilizes.
 /// </summary>
 public class OllamaClient : ILLMClient
 {
@@ -31,10 +31,23 @@ public class OllamaClient : ILLMClient
     {
         return await _retryPolicy.ExecuteAsync(async () =>
         {
-            // TODO: Implement actual OllamaSharp 2.0 API call
-            // For now, return a placeholder to allow testing of other components
+            // Mock implementation - returns helpful diagnostic message
+            // In production, this would call actual Ollama API
             await Task.Delay(100, cancellationToken);
-            return $"[Mock Ollama Response for model {_model}] Analysis of: {prompt.Substring(0, Math.Min(50, prompt.Length))}...";
+            
+            return $@"[Ollama Mock Response - Model: {_model}]
+
+**Root Cause Analysis:**
+Based on the diagnostic data, the primary issue appears to be related to memory management patterns in the application.
+
+**Suggested Actions:**
+1. Review object lifecycle management
+2. Check for event handler leaks
+3. Analyze thread synchronization
+4. Monitor GC pressure
+
+**Note:** This is a mock response. For real analysis, ensure Ollama is running with model '{_model}' installed.
+To use real Ollama: docker run -d -p 11434:11434 ollama/ollama && ollama pull {_model}";
         });
     }
 }

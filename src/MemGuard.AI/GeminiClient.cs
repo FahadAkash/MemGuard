@@ -14,7 +14,6 @@ public class GeminiClient : ILLMClient
 {
     private readonly HttpClient _httpClient;
     private readonly string _apiKey;
-    private readonly string _model = "gemini-2.0-flash-exp"; // Latest experimental model
     private readonly AsyncRetryPolicy _retryPolicy;
 
     public GeminiClient(HttpClient httpClient, string apiKey)

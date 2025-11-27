@@ -300,7 +300,27 @@ public class ObjectGraphAnalyzerService : IObjectGraphAnalyzer
 
     public List<ulong> GetBackReferences(ulong objectAddress, int maxDepth)
     {
-        throw new NotImplementedException();
+        var result = new List<ulong>();
+        var visited = new HashSet<ulong>();
+        CollectBackReferencesRecursive(objectAddress, maxDepth, 0, visited, result);
+        return result;
+    }
+
+    private void CollectBackReferencesRecursive(ulong objAddr, int maxDepth, int currentDepth, 
+        HashSet<ulong> visited, List<ulong> result)
+    {
+        if (currentDepth >= maxDepth || !visited.Add(objAddr))
+            return;
+
+        var backRefs = GetBackReferences(objAddr);
+        foreach (var refAddr in backRefs)
+        {
+            result.Add(refAddr);
+            if (currentDepth + 1 < maxDepth)
+            {
+                CollectBackReferencesRecursive(refAddr, maxDepth, currentDepth + 1, visited, result);
+            }
+        }
     }
 
     public int GetObjectReferenceCount(ulong objectAddress)
