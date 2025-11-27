@@ -34,10 +34,21 @@ public interface IBackupManager
 }
 
 /// <summary>
-/// Information about a backup
+/// Information about a backup with project tracking
 /// </summary>
 public record BackupInfo(
     string BackupId,
     DateTime Timestamp,
     IReadOnlyList<string> Files,
-    string? Metadata);
+    string? Metadata)
+{
+    /// <summary>
+    /// Project root directory where backup was created
+    /// </summary>
+    public string? ProjectRoot { get; init; }
+    
+    /// <summary>
+    /// Whether this backup belongs to the current project
+    /// </summary>
+    public bool IsCurrentProject { get; init; } = true;
+}

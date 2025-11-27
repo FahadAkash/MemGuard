@@ -4,7 +4,7 @@ using MemGuard.Core.Interfaces;
 namespace MemGuard.Infrastructure;
 
 /// <summary>
-/// Manages backups and restore operations
+/// Manages backups and restore operations with project-specific isolation
 /// </summary>
 public class BackupManager : IBackupManager
 {
@@ -22,7 +22,11 @@ public class BackupManager : IBackupManager
         var backupDir = Path.Combine(_backupRoot, backupId);
         Directory.CreateDirectory(backupDir);
 
-        var fileList = new List<string>();
+        var fileList = new List<BackupFileInfo>();
+
+        // Determine project root from first file
+        var firstFile = files.FirstOrDefault();
+        var projectRoot = firstFile != null ? GetProjectRoot(firstFile) : Environment.CurrentDirectory;
 
         foreach (var file in files)
         {
@@ -38,18 +42,29 @@ public class BackupManager : IBackupManager
                 Directory.CreateDirectory(backupFileDir);
 
             File.Copy(file, backupPath, true);
-            fileList.Add(file);
+            
+            // Store both original path and relative path
+            fileList.Add(new BackupFileInfo
+            {
+                OriginalPath = file,
+                RelativePath = relativePath,
+                BackupPath = backupPath
+            });
         }
 
-        // Save metadata
+        // Save metadata with project information
         var metadataPath = Path.Combine(backupDir, "metadata.json");
-        var metadataObj = new
+        var metadataObj = new BackupMetadata
         {
             BackupId = backupId,
             Timestamp = DateTime.Now,
             Files = fileList,
-            Metadata = metadata
+            Metadata = metadata,
+            ProjectRoot = projectRoot,
+            MachineName = Environment.MachineName,
+            UserName = Environment.UserName
         };
+        
         await File.WriteAllTextAsync(metadataPath, JsonSerializer.Serialize(metadataObj, new JsonSerializerOptions { WriteIndented = true }));
 
         return backupId;
@@ -71,14 +86,29 @@ public class BackupManager : IBackupManager
         if (metadata?.Files == null)
             throw new InvalidOperationException("Invalid backup metadata");
 
-        foreach (var originalFile in metadata.Files)
+        // Validate project root matches (safety check)
+        if (!string.IsNullOrEmpty(metadata.ProjectRoot))
         {
-            var fileName = Path.GetFileName(originalFile);
+            var currentProjectRoot = GetProjectRoot(Environment.CurrentDirectory);
+            if (!IsSameProject(metadata.ProjectRoot, currentProjectRoot))
+            {
+                throw new InvalidOperationException(
+                    $"Backup is from a different project!\n" +
+                    $"Backup project: {metadata.ProjectRoot}\n" +
+                    $"Current project: {currentProjectRoot}\n" +
+                    $"To restore this backup, navigate to the correct project directory first.");
+            }
+        }
+
+        // Restore files
+        foreach (var fileInfo in metadata.Files)
+        {
+            var fileName = Path.GetFileName(fileInfo.OriginalPath);
             var backupFile = Path.Combine(backupDir, fileName);
 
-            if (File.Exists(backupFile))
+            if (File.Exists(backupFile) && File.Exists(fileInfo.OriginalPath))
             {
-                File.Copy(backupFile, originalFile, true);
+                File.Copy(backupFile, fileInfo.OriginalPath, true);
             }
         }
     }
@@ -89,6 +119,8 @@ public class BackupManager : IBackupManager
 
         if (!Directory.Exists(_backupRoot))
             return backups;
+
+        var currentProjectRoot = GetProjectRoot(Environment.CurrentDirectory);
 
         foreach (var backupDir in Directory.GetDirectories(_backupRoot))
         {
@@ -103,11 +135,21 @@ public class BackupManager : IBackupManager
 
                 if (metadata != null)
                 {
+                    // Only show backups from current project
+                    var isCurrentProject = string.IsNullOrEmpty(metadata.ProjectRoot) || 
+                                          IsSameProject(metadata.ProjectRoot, currentProjectRoot);
+
+                    var fileList = metadata.Files?.Select(f => f.OriginalPath).ToList() ?? new List<string>();
+                    
                     backups.Add(new BackupInfo(
                         metadata.BackupId,
                         metadata.Timestamp,
-                        metadata.Files,
-                        metadata.Metadata));
+                        fileList,
+                        metadata.Metadata)
+                    {
+                        ProjectRoot = metadata.ProjectRoot,
+                        IsCurrentProject = isCurrentProject
+                    });
                 }
             }
             catch
@@ -129,11 +171,51 @@ public class BackupManager : IBackupManager
         return Task.CompletedTask;
     }
 
+    private static string GetProjectRoot(string path)
+    {
+        // Try to find project root by looking for .git, .sln, or src folder
+        var directory = File.Exists(path) ? Path.GetDirectoryName(path) : path;
+        
+        while (!string.IsNullOrEmpty(directory))
+        {
+            if (Directory.Exists(Path.Combine(directory, ".git")) ||
+                Directory.GetFiles(directory, "*.sln").Length > 0 ||
+                Directory.Exists(Path.Combine(directory, "src")))
+            {
+                return directory;
+            }
+            
+            directory = Path.GetDirectoryName(directory);
+        }
+        
+        // Fallback to current directory
+        return Environment.CurrentDirectory;
+    }
+
+    private static bool IsSameProject(string path1, string path2)
+    {
+        // Normalize paths for comparison
+        var normalized1 = Path.GetFullPath(path1).TrimEnd(Path.DirectorySeparatorChar);
+        var normalized2 = Path.GetFullPath(path2).TrimEnd(Path.DirectorySeparatorChar);
+        
+        return normalized1.Equals(normalized2, StringComparison.OrdinalIgnoreCase);
+    }
+
     private class BackupMetadata
     {
         public string BackupId { get; set; } = "";
         public DateTime Timestamp { get; set; }
-        public List<string> Files { get; set; } = new();
+        public List<BackupFileInfo>? Files { get; set; }
         public string? Metadata { get; set; }
+        public string? ProjectRoot { get; set; }
+        public string? MachineName { get; set; }
+        public string? UserName { get; set; }
+    }
+
+    private class BackupFileInfo
+    {
+        public string OriginalPath { get; set; } = "";
+        public string RelativePath { get; set; } = "";
+        public string BackupPath { get; set; } = "";
     }
 }
