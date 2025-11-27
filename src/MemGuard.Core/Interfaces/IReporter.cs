@@ -14,6 +14,8 @@ public interface IReporter
     /// Generates a report from analysis results
     /// </summary>
     /// <param name="result">Analysis results to format</param>
-    /// <returns>Formatted report content</returns>
-    string GenerateReport(AnalysisResult result);
+    /// <param name="outputPath">Path to save the report</param>
+    /// <param name="cancellationToken">Cancellation token</param>
+    /// <returns>Path to the generated report</returns>
+    Task<string> GenerateReportAsync(AnalysisResult result, string outputPath, CancellationToken cancellationToken = default);
 }

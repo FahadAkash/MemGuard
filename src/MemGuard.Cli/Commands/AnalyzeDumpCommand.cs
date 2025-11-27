@@ -1,118 +1,134 @@
 using Spectre.Console;
 using Spectre.Console.Cli;
 using MemGuard.Core;
+using MemGuard.Core.Interfaces;
+using MemGuard.Core.Services;
 using MemGuard.Infrastructure;
+using MemGuard.Infrastructure.Extractors;
 using MemGuard.AI;
-using MemGuard.AI.Interface;
 using MemGuard.Reporters;
+using MemGuard.Cli.Models;
 using Microsoft.Extensions.DependencyInjection;
 using System.Diagnostics;
-using System.Globalization;
-using MemGuard.Core.Services;
-using MemGuard.Core.Interfaces;
-using MemGuard.Cli.Models;
 
 namespace MemGuard.Cli.Commands;
 
-public sealed class AnalyzeDumpCommand : Command<AnalyzeDumpSettings>
+public sealed class AnalyzeDumpCommand : AsyncCommand<AnalyzeDumpSettings>
 {
-    public override int Execute(CommandContext context, AnalyzeDumpSettings settings)
+    public override async Task<int> ExecuteAsync(CommandContext context, AnalyzeDumpSettings settings)
     {
         ArgumentNullException.ThrowIfNull(settings);
 
         try
         {
-            AnsiConsole.MarkupLine("[green]MemGuard[/] - AI-powered dump analysis starting...");
-            AnsiConsole.MarkupLine($"[yellow]Analyzing:[/] {settings.DumpPath}");
-            AnsiConsole.MarkupLine($"[yellow]Using Model:[/] {settings.Model}");
+            AnsiConsole.Write(new FigletText("MemGuard").Color(Color.Green));
+            AnsiConsole.MarkupLine("[grey]AI-Powered .NET Diagnostic Tool[/]");
+            AnsiConsole.WriteLine();
+
+            AnsiConsole.Write(new Markup("[yellow]Analyzing:[/] "));
+            AnsiConsole.WriteLine(settings.DumpPath);
+            AnsiConsole.Write(new Markup("[yellow]Provider:[/] "));
+            AnsiConsole.WriteLine(settings.Provider);
+            AnsiConsole.Write(new Markup("[yellow]Model:[/] "));
+            AnsiConsole.WriteLine(settings.Model ?? "Default");
+            
             // Create service collection and configure dependencies
             var services = new ServiceCollection();
             ConfigureServices(services, settings);
             var serviceProvider = services.BuildServiceProvider();
-            var memleaksDetectorService = serviceProvider.GetRequiredService<IMemLeakDetector>();
-            memleaksDetectorService.LoadDumpFile(settings.DumpPath);
+
+            var orchestrator = serviceProvider.GetRequiredService<AnalysisOrchestrator>();
+            var reporter = serviceProvider.GetRequiredService<IReporter>();
+            var telemetry = serviceProvider.GetRequiredService<TelemetryService>();
+
+            using var activity = telemetry.StartAnalysisActivity(settings.DumpPath);
             var stopwatch = Stopwatch.StartNew();
-            var analyze = new AnalysisOptions
-            {
-                TopN = 20,
-                MaxSamplesPerType = 5
-            };
-            var result = memleaksDetectorService.Diagnose(analyze);
-            Console.WriteLine($"Leak Report Generated at {DateTime.Now}");
-            Console.WriteLine($"Root Cause: {result.RootCause}");
-            Console.WriteLine($"Diagonistic Count:  {result.Diagnostics.Count}");
-            AnsiConsole.WriteLine($"Leak Report Generated at {DateTime.Now}");
-            AnsiConsole.WriteLine($"Root Cause: {result.RootCause}");
-            AnsiConsole.WriteLine($"Diagonistic Count:  {result.Diagnostics.Count}");
+
+            AnalysisResult? result = null;
+            
+            await AnsiConsole.Status()
+                .Spinner(Spinner.Known.Dots)
+                .StartAsync("Analyzing dump...", async ctx =>
+                {
+                    ctx.Status("Loading dump and extracting diagnostics...");
+                    result = await orchestrator.AnalyzeAsync(settings.DumpPath);
+                    
+                    ctx.Status("Generating report...");
+                });
 
             stopwatch.Stop();
+            telemetry.RecordAnalysis(stopwatch.Elapsed.TotalSeconds, true);
+
+            // Display summary to console
+            AnsiConsole.WriteLine();
+            var table = new Table();
+            table.AddColumn("Metric");
+            table.AddColumn("Value");
+            table.AddRow("Confidence", $"{result!.ConfidenceScore:P0}");
+            var rootCauseDisplay = result.RootCause.Length > 50 ? result.RootCause.Substring(0, 47) + "..." : result.RootCause;
+            table.AddRow("Root Cause", rootCauseDisplay.EscapeMarkup());
+            table.AddRow("Diagnostics", result.Diagnostics.Count.ToString());
+            AnsiConsole.Write(table);
 
             // Generate report
+            var outputPath = settings.OutputPath ?? Path.ChangeExtension(settings.DumpPath, ".md");
+            var reportPath = await reporter.GenerateReportAsync(result, outputPath);
 
-            // Output result
-            if (!string.IsNullOrEmpty(settings.OutputPath))
-            {
+            AnsiConsole.MarkupLine($"[green]Analysis completed in {stopwatch.Elapsed.TotalSeconds:F1}s[/]");
+            AnsiConsole.Write(new Markup("[green]Report saved to:[/] "));
+            AnsiConsole.WriteLine(reportPath);
 
-                AnsiConsole.MarkupLine($"[green]Report saved to:[/] {settings.OutputPath}");
-            }
-            else
-            {
-                AnsiConsole.WriteLine();
-
-            }
-
-            AnsiConsole.MarkupLine($"[green]Analysis completed in [/]{stopwatch.ElapsedMilliseconds}ms");
             return 0;
-        }
-        catch (FileNotFoundException ex)
-        {
-            AnsiConsole.MarkupLine($"[red]Error:[/] Dump file not found: {ex.Message}");
-            return 1;
-        }
-        catch (UnauthorizedAccessException ex)
-        {
-            AnsiConsole.MarkupLine($"[red]Error:[/] Access denied to dump file: {ex.Message}");
-            return 1;
         }
         catch (Exception ex)
         {
             AnsiConsole.MarkupLine($"[red]Error:[/] {ex.Message}");
+            if (ex.InnerException != null)
+            {
+                AnsiConsole.MarkupLine($"[red]Details:[/] {ex.InnerException.Message}");
+            }
             return 1;
         }
     }
 
     private static void ConfigureServices(IServiceCollection services, AnalyzeDumpSettings settings)
     {
-        // Register infrastructure services
+        // Infrastructure
         services.AddSingleton<TelemetryService>();
-        services.AddSingleton<AnalyzeDumpSettings>(settings);
-        services.AddSingleton<IMemLeakDetector, MemLeakDetectorService>();
-        // Register AI services
-        services.AddSingleton<ILLMClient>(provider =>
+        services.AddSingleton<IDumpParser, DumpParser>();
+        
+        // Extractors
+        services.AddSingleton<IDiagnosticExtractor, HeapExtractor>();
+        services.AddSingleton<IDiagnosticExtractor, DeadlockExtractor>();
+        
+        // AI Client
+        if (settings.Provider.Equals("Gemini", StringComparison.OrdinalIgnoreCase))
         {
-            // In a real implementation, we'd configure based on settings
-            return new OllamaClient(new Uri("http://localhost:11434"), settings.Model);
-        });
+            services.AddHttpClient<GeminiClient>();
+            services.AddSingleton<ILLMClient>(sp => 
+            {
+                var httpClient = sp.GetRequiredService<IHttpClientFactory>().CreateClient(nameof(GeminiClient));
+                var apiKey = settings.ApiKey ?? "AIzaSyBwO0jyYU9LBexFLO2W6yU6JLovY8HgqXo"; // Default or from settings
+                return new GeminiClient(httpClient, apiKey);
+            });
+        }
+        else
+        {
+            services.AddSingleton<ILLMClient>(sp => 
+                new OllamaClient("http://localhost:11434", settings.Model ?? "llama3.2"));
+        }
 
-        // Register reporters
-        services.AddSingleton<IReporter>(provider =>
+        // Reporter
+        services.AddSingleton<IReporter>(sp =>
         {
             return settings.Format.ToUpperInvariant() switch
             {
-                "MARKDOWN" => new MarkdownReporter(),
-                "HTML" => new HtmlReporter(),
                 "PDF" => new PdfReporter(),
                 _ => new MarkdownReporter()
             };
         });
 
-        // Register analyzers
-        services.AddSingleton<IAnalyzer, HeapAnalyzer>();
-        services.AddSingleton<IAnalyzer, DeadlockAnalyzer>();
-        services.AddSingleton<IEnumerable<IAnalyzer>>(provider =>
-            provider.GetServices<IAnalyzer>().ToList());
-
-        // Register orchestrator
+        // Orchestrator
         services.AddSingleton<AnalysisOrchestrator>();
     }
 }

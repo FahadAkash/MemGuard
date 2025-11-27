@@ -7,6 +7,9 @@
   <ItemGroup>
     <PackageReference Include="OllamaSharp" />
     <PackageReference Include="Microsoft.Extensions.AI" />
+    <PackageReference Include="Polly" />
+    <PackageReference Include="Microsoft.Extensions.Http.Resilience" />
+    <PackageReference Include="System.Net.Http.Json" />
   </ItemGroup>
 
   <PropertyGroup>

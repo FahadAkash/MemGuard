@@ -1,108 +1,52 @@
 ﻿using Microsoft.Diagnostics.Runtime;
-using System.Text.RegularExpressions;
-using MemGuard.Core;
+using MemGuard.Core.Interfaces;
 
 namespace MemGuard.Infrastructure;
 
 /// <summary>
 /// Parses memory dumps using ClrMD library
 /// </summary>
-public static class DumpParser
+public class DumpParser : IDumpParser
 {
-    /// <summary>
-    /// Loads a memory dump for analysis
-    /// </summary>
-    /// <param name="filePath">Path to the dump file</param>
-    /// <returns>ClrRuntime instance for analysis</returns>
-    public static ClrRuntime LoadDump(string filePath)
-    {
-        ArgumentNullException.ThrowIfNull(filePath);
+    private DataTarget? _dataTarget;
+    private ClrRuntime? _runtime;
 
-        var dataTarget = DataTarget.LoadDump(filePath);
-        return dataTarget.ClrVersions.Single().CreateRuntime();
-    }
-    
-    /// <summary>
-    /// Extracts heap statistics from the dump
-    /// </summary>
-    /// <param name="runtime">ClrRuntime instance</param>
-    /// <returns>Heap diagnostic information</returns>
-    public static HeapDiagnostic ExtractHeapInfo(ClrRuntime runtime)
+    /// <inheritdoc />
+    public ClrRuntime LoadDump(string dumpPath)
     {
-        ArgumentNullException.ThrowIfNull(runtime);
+        ArgumentNullException.ThrowIfNull(dumpPath);
 
-        var heap = runtime.Heap;
-        long totalSize = 0;
-        long freeSize = 0;
-        
-        foreach (var segment in heap.Segments)
+        if (!File.Exists(dumpPath))
+            throw new FileNotFoundException($"Dump file not found: {dumpPath}");
+
+        // Clean up previous session if any
+        Dispose();
+
+        try
         {
-            totalSize += (long)segment.Length;
-            // Note: In a real implementation, we'd extract actual free space information
-            // This is simplified for demonstration purposes
+            _dataTarget = DataTarget.LoadDump(dumpPath);
+            
+            var clrVersion = _dataTarget.ClrVersions.FirstOrDefault() 
+                ?? throw new InvalidOperationException("No .NET runtime found in the dump.");
+                
+            _runtime = clrVersion.CreateRuntime();
+            return _runtime;
         }
-        
-        var fragmentation = totalSize > 0 ? (double)freeSize / totalSize : 0;
-        
-        return new HeapDiagnostic(
-            FragmentationLevel: fragmentation,
-            LargestFreeBlock: 0, // Would be extracted in real implementation
-            TotalSize: totalSize);
-    }
-    
-    /// <summary>
-    /// Detects deadlocks in the dump
-    /// </summary>
-    /// <param name="runtime">ClrRuntime instance</param>
-    /// <returns>Deadlock diagnostic information</returns>
-    public static DeadlockDiagnostic DetectDeadlocks(ClrRuntime runtime)
-    {
-        ArgumentNullException.ThrowIfNull(runtime);
-
-        var threadIds = new List<int>();
-        var lockObjects = new List<string>();
-        
-        // Simplified deadlock detection - in reality this would be more complex
-        foreach (var thread in runtime.Threads.Where(t => t.IsAlive))
+        catch (Exception)
         {
-            if (thread.LockCount > 5) // Arbitrary threshold
-            {
-                threadIds.Add(thread.ManagedThreadId);
-                // Would extract actual lock object information in full implementation
-                lockObjects.Add($"Thread {thread.ManagedThreadId} has {thread.LockCount} locks");
-            }
+            Dispose();
+            throw;
         }
-        
-        return new DeadlockDiagnostic(threadIds, lockObjects);
     }
-}
 
-/// <summary>
-/// Sanitizes memory dumps to remove PII
-/// </summary>
-public class DumpSanitizer
-{
-    private readonly Regex[] _piiPatterns = {
-        new(@"\b[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Z|a-z]{2,}\b"), // Email
-        new(@"\b\d{3}-\d{2}-\d{4}\b"), // SSN
-        new(@"\b(?:\d{4}[ -]?){3}\d{4}\b"), // Credit card
-        new(@"\b\d{3}-\d{3}-\d{4}\b") // Phone number
-    };
-    
-    /// <summary>
-    /// Removes PII from dump content
-    /// </summary>
-    /// <param name="content">Raw dump content</param>
-    /// <returns>Sanitized content</returns>
-    public string Sanitize(string content)
+    public void Dispose()
     {
-        if (string.IsNullOrEmpty(content))
-            return content;
-
-        foreach (var pattern in _piiPatterns)
-        {
-            content = pattern.Replace(content, "[REDACTED]");
-        }
-        return content;
+        _runtime?.Dispose();
+        _runtime = null;
+        
+        _dataTarget?.Dispose();
+        _dataTarget = null;
+        
+        GC.SuppressFinalize(this);
     }
 }
