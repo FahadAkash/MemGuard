@@ -13,7 +13,7 @@
     
     <!-- Package Metadata -->
     <PackageId>MemGuard</PackageId>
-    <Version>1.0.2</Version>
+    <Version>1.0.4</Version>
     <Authors>Fahad Akash</Authors>
     <Company>MemGuard</Company>
     <Product>MemGuard - AI-Powered .NET Memory Diagnostic Tool</Product>
@@ -23,6 +23,7 @@
     <PackageTags>dotnet;memory;diagnostic;ai;debugging;dump;analyzer;leak-detection;deadlock;performance</PackageTags>
     <PackageLicenseExpression>MIT</PackageLicenseExpression>
     <PackageReadmeFile>README.md</PackageReadmeFile>
+    <PackageIcon>icon.png</PackageIcon>
   </PropertyGroup>
 
   <ItemGroup>

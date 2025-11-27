@@ -79,5 +79,21 @@ static void ShowExamples()
     table.AddRow("compare", "Compare two dumps", "memguard compare before.dmp after.dmp");
 
     AnsiConsole.Write(table);
+
+    var optionsTable = new Table();
+    optionsTable.Border(TableBorder.Rounded);
+    optionsTable.Title("[bold yellow]Common Options[/]");
+    optionsTable.AddColumn(new TableColumn("[cyan]Option[/]").Centered());
+    optionsTable.AddColumn(new TableColumn("[green]Description[/]"));
+
+    optionsTable.AddRow("--provider", "AI Provider (Gemini, Claude, Grok, DeepSeek, Ollama)");
+    optionsTable.AddRow("--api-key", "API Key for the AI provider");
+    optionsTable.AddRow("--project", "Path to the target project");
+    optionsTable.AddRow("--dry-run", "Preview changes without applying them");
+    optionsTable.AddRow("--output", "Path to save output report");
+    optionsTable.AddRow("--process", "Name of process to monitor");
+
+    AnsiConsole.Write(optionsTable);
+
     AnsiConsole.MarkupLine("\n[grey]Run 'memguard <command> --help' for more details.[/]");
 }
