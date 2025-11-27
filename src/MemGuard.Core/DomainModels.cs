@@ -72,3 +72,37 @@ public enum SeverityLevel
     Error,
     Critical
 }
+
+// Memory analysis models
+public class LeakReport
+{
+    public ulong TotalHeapSize { get; set; }
+    public ulong TotalObjects { get; set; }
+    public List<LeakTypeSummary> TopTypesByRetainedSize { get; set; } = new();
+}
+
+public class LeakTypeSummary
+{
+    public string TypeName { get; set; } = string.Empty;
+    public ulong RetainedSize { get; set; }
+    public int InstanceCount { get; set; }
+    public List<ulong> ExampleObjectAddresses { get; set; } = new();
+}
+
+public record ObjectInfo(
+    ulong Address,
+    string TypeName,
+    ulong Size,
+    int Generation);
+
+public record RetentionPath(
+    ulong ObjectAddress,
+    IReadOnlyList<string> PathFromRoot);
+
+public class AnalysisOptions
+{
+    public int TopN { get; set; } = 30;
+    public bool CalculateAccurateRetainedSize { get; set; } = true;
+    public int MaxSamplesPerType { get; set; } = 5;
+    public int AccurateRetainedSizeTopCount { get; set; } = 10;
+}

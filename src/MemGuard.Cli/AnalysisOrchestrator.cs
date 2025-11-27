@@ -1,8 +1,10 @@
 using MemGuard.Core;
 using MemGuard.Infrastructure;
 using MemGuard.AI;
+using MemGuard.AI.Interface;
 using Microsoft.Diagnostics.Runtime;
 using System.Diagnostics;
+using MemGuard.Core.Interfaces;
 
 namespace MemGuard.Cli;
 
@@ -14,15 +16,18 @@ public class AnalysisOrchestrator
     private readonly IEnumerable<IAnalyzer> _analyzers;
     private readonly ILLMClient _llmClient;
     private readonly TelemetryService _telemetryService;
+    private readonly IMemLeakDetector _memLeakDetectorService;
 
     public AnalysisOrchestrator(
         IEnumerable<IAnalyzer> analyzers,
         ILLMClient llmClient,
-        TelemetryService telemetryService)
+        TelemetryService telemetryService , 
+        IMemLeakDetector memLeakDetectorService)
     {
         _analyzers = analyzers;
         _llmClient = llmClient;
         _telemetryService = telemetryService;
+        _memLeakDetectorService = memLeakDetectorService;
     }
 
     /// <summary>
@@ -40,26 +45,26 @@ public class AnalysisOrchestrator
         try
         {
             // Load the dump
-            var runtime = DumpParser.LoadDump(dumpPath);
+           _memLeakDetectorService.LoadDumpFile(dumpPath);
 
             // Extract diagnostics using analyzers
             var diagnostics = new List<DiagnosticBase>();
             
             // Use built-in extractors
-            var heapDiagnostic = DumpParser.ExtractHeapInfo(runtime);
-            diagnostics.Add(heapDiagnostic);
+            // var heapDiagnostic = DumpParser.ExtractHeapInfo();
+            // diagnostics.Add(heapDiagnostic);
             
-            var deadlockDiagnostic = DumpParser.DetectDeadlocks(runtime);
-            if (deadlockDiagnostic.ThreadIds.Count > 0)
-                diagnostics.Add(deadlockDiagnostic);
+            // var deadlockDiagnostic = DumpParser.DetectDeadlocks(runtime);
+            // if (deadlockDiagnostic.ThreadIds.Count > 0)
+            //     diagnostics.Add(deadlockDiagnostic);
 
-            // Use strategy pattern analyzers
-            var context = new AnalysisContext { DumpPath = dumpPath };
-            foreach (var analyzer in _analyzers)
-            {
-                var analyzerDiagnostics = analyzer.Analyze(context);
-                diagnostics.AddRange(analyzerDiagnostics);
-            }
+            // // Use strategy pattern analyzers
+            // var context = new AnalysisContext { DumpPath = dumpPath };
+            // foreach (var analyzer in _analyzers)
+            // {
+            //     var analyzerDiagnostics = analyzer.Analyze(context);
+            //     diagnostics.AddRange(analyzerDiagnostics);
+            // }
 
             // Build prompt for LLM
             var prompt = PromptBuilder.BuildAnalysisPrompt(diagnostics);

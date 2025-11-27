@@ -3,10 +3,14 @@ using Spectre.Console.Cli;
 using MemGuard.Core;
 using MemGuard.Infrastructure;
 using MemGuard.AI;
+using MemGuard.AI.Interface;
 using MemGuard.Reporters;
 using Microsoft.Extensions.DependencyInjection;
 using System.Diagnostics;
 using System.Globalization;
+using MemGuard.Core.Services;
+using MemGuard.Core.Interfaces;
+using MemGuard.Cli.Models;
 
 namespace MemGuard.Cli.Commands;
 
@@ -20,36 +24,41 @@ public sealed class AnalyzeDumpCommand : Command<AnalyzeDumpSettings>
         {
             AnsiConsole.MarkupLine("[green]MemGuard[/] - AI-powered dump analysis starting...");
             AnsiConsole.MarkupLine($"[yellow]Analyzing:[/] {settings.DumpPath}");
-
+            AnsiConsole.MarkupLine($"[yellow]Using Model:[/] {settings.Model}");
             // Create service collection and configure dependencies
             var services = new ServiceCollection();
             ConfigureServices(services, settings);
             var serviceProvider = services.BuildServiceProvider();
-
-            // Get the analysis orchestrator
-            var orchestrator = serviceProvider.GetRequiredService<AnalysisOrchestrator>();
-            
-            // Run analysis
+            var memleaksDetectorService = serviceProvider.GetRequiredService<IMemLeakDetector>();
+            memleaksDetectorService.LoadDumpFile(settings.DumpPath);
             var stopwatch = Stopwatch.StartNew();
-            var result = orchestrator.AnalyzeDump(settings.DumpPath).Result;
+            var analyze = new AnalysisOptions
+            {
+                TopN = 20,
+                MaxSamplesPerType = 5
+            };
+            var result = memleaksDetectorService.Diagnose(analyze);
+            Console.WriteLine($"Leak Report Generated at {DateTime.Now}");
+            Console.WriteLine($"Root Cause: {result.RootCause}");
+            Console.WriteLine($"Diagonistic Count:  {result.Diagnostics.Count}");
+            AnsiConsole.WriteLine($"Leak Report Generated at {DateTime.Now}");
+            AnsiConsole.WriteLine($"Root Cause: {result.RootCause}");
+            AnsiConsole.WriteLine($"Diagonistic Count:  {result.Diagnostics.Count}");
+
             stopwatch.Stop();
 
             // Generate report
-            var reporter = serviceProvider.GetRequiredService<IReporter>();
-            var report = reporter.GenerateReport(result);
 
             // Output result
             if (!string.IsNullOrEmpty(settings.OutputPath))
             {
-                File.WriteAllText(settings.OutputPath, report);
+
                 AnsiConsole.MarkupLine($"[green]Report saved to:[/] {settings.OutputPath}");
             }
             else
             {
                 AnsiConsole.WriteLine();
-                AnsiConsole.Write(new Panel(report)
-                    .Header("Analysis Results")
-                    .BorderColor(Color.Green));
+
             }
 
             AnsiConsole.MarkupLine($"[green]Analysis completed in [/]{stopwatch.ElapsedMilliseconds}ms");
@@ -76,7 +85,8 @@ public sealed class AnalyzeDumpCommand : Command<AnalyzeDumpSettings>
     {
         // Register infrastructure services
         services.AddSingleton<TelemetryService>();
-
+        services.AddSingleton<AnalyzeDumpSettings>(settings);
+        services.AddSingleton<IMemLeakDetector, MemLeakDetectorService>();
         // Register AI services
         services.AddSingleton<ILLMClient>(provider =>
         {
@@ -105,19 +115,4 @@ public sealed class AnalyzeDumpCommand : Command<AnalyzeDumpSettings>
         // Register orchestrator
         services.AddSingleton<AnalysisOrchestrator>();
     }
-}
-
-public sealed class AnalyzeDumpSettings : CommandSettings
-{
-    [CommandArgument(0, "<dumpPath>")]
-    public string DumpPath { get; set; } = string.Empty;
-
-    [CommandOption("-o|--output")]
-    public string? OutputPath { get; set; }
-
-    [CommandOption("--model")]
-    public string Model { get; set; } = "llama3.2:13b";
-
-    [CommandOption("-f|--format")]
-    public string Format { get; set; } = "markdown";
 }

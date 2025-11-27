@@ -1,4 +1,4 @@
-﻿
+﻿﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 17
 VisualStudioVersion = 17.0.31903.59
@@ -12,6 +12,8 @@ EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MemGuard.Cli", "MemGuard.Cli\MemGuard.Cli.csproj", "{023059DA-B5D8-41E6-A628-5291FA51EC24}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MemGuard.Infrastructure", "MemGuard.Infrastructure\MemGuard.Infrastructure.csproj", "{88F9A058-8C02-4B14-B574-65A779BC7582}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MemGuard.Tests", "..\tests\MemGuard.Tests\MemGuard.Tests.csproj", "{E76D084D-FF52-441B-B6C3-63602F35A046}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -42,5 +44,9 @@ Global
 		{88F9A058-8C02-4B14-B574-65A779BC7582}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{88F9A058-8C02-4B14-B574-65A779BC7582}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{88F9A058-8C02-4B14-B574-65A779BC7582}.Release|Any CPU.Build.0 = Release|Any CPU
+		{E76D084D-FF52-441B-B6C3-63602F35A046}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{E76D084D-FF52-441B-B6C3-63602F35A046}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{E76D084D-FF52-441B-B6C3-63602F35A046}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{E76D084D-FF52-441B-B6C3-63602F35A046}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 EndGlobal
