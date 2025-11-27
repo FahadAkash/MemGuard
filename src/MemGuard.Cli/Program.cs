@@ -1,6 +1,7 @@
 ﻿using Spectre.Console;
 using Spectre.Console.Cli;
 using MemGuard.Cli.Commands;
+using System.Linq;
 
 #pragma warning disable CA1861, CA2007
 
@@ -12,6 +13,13 @@ AnsiConsole.Write(
 AnsiConsole.MarkupLine("[bold yellow]AI-Powered .NET Memory Diagnostic Tool[/]");
 AnsiConsole.MarkupLine("[grey]Made by Fahad Akash[/]");
 AnsiConsole.WriteLine();
+
+// Handle --example argument
+if (args.Contains("--example") || args.Contains("-e"))
+{
+    ShowExamples();
+    return 0;
+}
 
 var app = new CommandApp();
 app.Configure(config =>
@@ -53,3 +61,23 @@ app.Configure(config =>
 });
 
 return await app.RunAsync(args).ConfigureAwait(false);
+
+static void ShowExamples()
+{
+    var table = new Table();
+    table.Border(TableBorder.Rounded);
+    table.Title("[bold yellow]MemGuard Command Examples[/]");
+    table.AddColumn(new TableColumn("[cyan]Command[/]").Centered());
+    table.AddColumn(new TableColumn("[green]Description[/]"));
+    table.AddColumn(new TableColumn("[magenta]Example Usage[/]"));
+
+    table.AddRow("analyze", "Analyze a memory dump", "memguard analyze crash.dmp --provider Gemini");
+    table.AddRow("fix", "Auto-fix code from dump", "memguard fix crash.dmp --project . --dry-run");
+    table.AddRow("monitor", "Monitor live process", "memguard monitor --process MyApp --interval 5");
+    table.AddRow("agent", "Interactive AI agent", "memguard agent --project . --provider Claude");
+    table.AddRow("restore", "Restore from backup", "memguard restore --list");
+    table.AddRow("compare", "Compare two dumps", "memguard compare before.dmp after.dmp");
+
+    AnsiConsole.Write(table);
+    AnsiConsole.MarkupLine("\n[grey]Run 'memguard <command> --help' for more details.[/]");
+}
