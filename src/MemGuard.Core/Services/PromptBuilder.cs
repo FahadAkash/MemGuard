@@ -48,6 +48,63 @@ public static class PromptBuilder
     }
     
     /// <summary>
+    /// Builds a prompt for requesting code fixes
+    /// </summary>
+    /// <param name="diagnostics">Diagnostic information</param>
+    /// <param name="projectPath">Path to the project (optional)</param>
+    /// <returns>Built prompt for fixes</returns>
+    public static string BuildFixPrompt(IReadOnlyList<DiagnosticBase> diagnostics, string? projectPath = null)
+    {
+        ArgumentNullException.ThrowIfNull(diagnostics);
+
+        var sb = new StringBuilder();
+        sb.AppendLine("You are an expert .NET debugger and code fixer. Analyze the following diagnostic information and provide ACTIONABLE code fixes.");
+        sb.AppendLine();
+        sb.AppendLine("For each issue, provide:");
+        sb.AppendLine("1. The EXACT file path (relative to project root)");
+        sb.AppendLine("2. The complete fixed code in a code block");
+        sb.AppendLine("3. A brief explanation of the fix");
+        sb.AppendLine();
+        sb.AppendLine("Format your response like this:");
+        sb.AppendLine("File: path/to/File.cs");
+        sb.AppendLine("```csharp");
+        sb.AppendLine("// Fixed code here");
+        sb.AppendLine("```");
+        sb.AppendLine("Explanation: Brief explanation");
+        sb.AppendLine();
+        
+        if (projectPath != null)
+        {
+            sb.AppendLine($"Project Path: {projectPath}");
+            sb.AppendLine();
+        }
+
+        sb.AppendLine("Diagnostic Information:");
+        foreach (var diagnostic in diagnostics)
+        {
+            sb.AppendLine($"- Type: {diagnostic.Type}");
+            sb.AppendLine($"  Severity: {diagnostic.Severity}");
+            sb.AppendLine($"  Description: {diagnostic.Description}");
+            
+            if (diagnostic is HeapDiagnostic heap)
+            {
+                sb.AppendLine($"  Fragmentation: {heap.FragmentationLevel:P2}");
+                sb.AppendLine($"  Total Size: {heap.TotalSize:N0} bytes");
+            }
+            else if (diagnostic is DeadlockDiagnostic deadlock)
+            {
+                sb.AppendLine($"  Threads: {string.Join(", ", deadlock.ThreadIds)}");
+                foreach (var lockInfo in deadlock.LockObjects.Take(5))
+                {
+                    sb.AppendLine($"  - {lockInfo}");
+                }
+            }
+        }
+
+        return sb.ToString();
+    }
+    
+    /// <summary>
     /// Parses the LLM response into an AnalysisResult
     /// </summary>
     /// <param name="response">LLM response</param>

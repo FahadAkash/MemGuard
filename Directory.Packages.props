@@ -27,6 +27,7 @@
     <!-- Infrastructure -->
     <PackageVersion Include="System.Net.Http.Json" Version="8.0.0" />
     <PackageVersion Include="OpenTelemetry" Version="1.9.0" />
+    <PackageVersion Include="DiffPlex" Version="1.7.2" />
 
     <!-- Test -->
     <PackageVersion Include="coverlet.collector" Version="6.0.0" />

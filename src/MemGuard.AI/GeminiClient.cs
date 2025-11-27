@@ -30,7 +30,7 @@ public class GeminiClient : ILLMClient
 
     public async Task<string> GenerateResponseAsync(string prompt, CancellationToken cancellationToken = default)
     {
-        var url = $"https://generativelanguage.googleapis.com/v1/models/{_model}:generateContent?key={_apiKey}";
+        var url = $"https://generativelanguage.googleapis.com/v1beta/models/{_model}:generateContent?key={_apiKey}";
         
         var requestBody = new
         {
@@ -48,11 +48,27 @@ public class GeminiClient : ILLMClient
 
         return await _retryPolicy.ExecuteAsync(async () =>
         {
-            var response = await _httpClient.PostAsJsonAsync(url, requestBody, cancellationToken);
-            response.EnsureSuccessStatusCode();
-            
-            var json = await response.Content.ReadFromJsonAsync<GeminiResponse>(cancellationToken: cancellationToken);
-            return json?.Candidates?.FirstOrDefault()?.Content?.Parts?.FirstOrDefault()?.Text ?? "No response from Gemini";
+            try
+            {
+                var response = await _httpClient.PostAsJsonAsync(url, requestBody, cancellationToken);
+                
+                if (!response.IsSuccessStatusCode)
+                {
+                    var errorContent = await response.Content.ReadAsStringAsync(cancellationToken);
+                    throw new HttpRequestException($"Gemini API error ({response.StatusCode}): {errorContent}");
+                }
+                
+                var json = await response.Content.ReadFromJsonAsync<GeminiResponse>(cancellationToken: cancellationToken);
+                return json?.Candidates?.FirstOrDefault()?.Content?.Parts?.FirstOrDefault()?.Text ?? "No response from Gemini";
+            }
+            catch (HttpRequestException)
+            {
+                throw;
+            }
+            catch (Exception ex)
+            {
+                throw new HttpRequestException($"Gemini API call failed: {ex.Message}", ex);
+            }
         });
     }
 
