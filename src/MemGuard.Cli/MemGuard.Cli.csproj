@@ -1,25 +1,46 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
+
   <PropertyGroup>
     <OutputType>Exe</OutputType>
+    <TargetFramework>net8.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+    
+    <!-- Global Tool Configuration -->
     <PackAsTool>true</PackAsTool>
     <ToolCommandName>memguard</ToolCommandName>
-    <AssemblyName>MemGuard.Cli</AssemblyName>
-    <RootNamespace>MemGuard.Cli</RootNamespace>
+    <PackageOutputPath>./nupkg</PackageOutputPath>
+    
+    <!-- Package Metadata -->
+    <PackageId>MemGuard</PackageId>
+    <Version>1.0.0</Version>
+    <Authors>Fahad Akash</Authors>
+    <Company>MemGuard</Company>
+    <Product>MemGuard - AI-Powered .NET Memory Diagnostic Tool</Product>
+    <Description>AI-powered .NET memory dump analyzer with multi-AI support (Gemini, Claude, Grok, DeepSeek, Ollama), interactive agent, auto-fix, and live monitoring.</Description>
+    <PackageProjectUrl>https://github.com/FahadAkash/MemGuard</PackageProjectUrl>
+    <RepositoryUrl>https://github.com/FahadAkash/MemGuard</RepositoryUrl>
+    <PackageTags>dotnet;memory;diagnostic;ai;debugging;dump;analyzer;leak-detection;deadlock;performance</PackageTags>
+    <PackageLicenseExpression>MIT</PackageLicenseExpression>
+    <PackageReadmeFile>README.md</PackageReadmeFile>
   </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\MemGuard.Core\MemGuard.Core.csproj" />
+    <ProjectReference Include="..\MemGuard.Infrastructure\MemGuard.Infrastructure.csproj" />
+    <ProjectReference Include="..\MemGuard.AI\MemGuard.AI.csproj" />
+    <ProjectReference Include="..\MemGuard.Reporters\MemGuard.Reporters.csproj" />
+  </ItemGroup>
 
   <ItemGroup>
     <PackageReference Include="Spectre.Console.Cli" />
     <PackageReference Include="Microsoft.Extensions.Configuration.Json" />
     <PackageReference Include="Microsoft.Extensions.Hosting" />
     <PackageReference Include="Microsoft.Extensions.DependencyInjection.Abstractions" />
-    <None Include="..\..\icon.png" Pack="true" PackagePath="\" />
-    <None Include="..\..\README.md" Pack="true" PackagePath="\" />
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\MemGuard.Core\MemGuard.Core.csproj" />
-    <ProjectReference Include="..\MemGuard.AI\MemGuard.AI.csproj" />
-    <ProjectReference Include="..\MemGuard.Reporters\MemGuard.Reporters.csproj" />
-    <ProjectReference Include="..\MemGuard.Infrastructure\MemGuard.Infrastructure.csproj" />
+    <None Include="..\..\README.md" Pack="true" PackagePath="\" />
   </ItemGroup>
+
 </Project>
