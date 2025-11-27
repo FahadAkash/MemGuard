@@ -1,10 +1,18 @@
-﻿using Spectre.Console.Cli;
+﻿using Spectre.Console;
+using Spectre.Console.Cli;
 using MemGuard.Cli.Commands;
- 
- 
-#pragma warning disable CA1861, CA2007   // We don't need those warnings in a tiny CLI tool
 
- 
+#pragma warning disable CA1861, CA2007
+
+// Display Branding
+AnsiConsole.Write(
+    new FigletText("MemGuard")
+        .LeftJustified()
+        .Color(Color.Cyan1));
+AnsiConsole.MarkupLine("[bold yellow]AI-Powered .NET Memory Diagnostic Tool[/]");
+AnsiConsole.MarkupLine("[grey]Made by Fahad Akash[/]");
+AnsiConsole.WriteLine();
+
 var app = new CommandApp();
 app.Configure(config =>
 {
