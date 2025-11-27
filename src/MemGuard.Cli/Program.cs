@@ -36,6 +36,12 @@ app.Configure(config =>
     config.AddCommand<CompareCommand>("compare")
         .WithDescription("Compare two memory dumps")
         .WithExample(new[] { "compare", "before.dmp", "after.dmp", "--output", "diff.md" });
+    
+    // Agent command
+    config.AddCommand<AgentCommand>("agent")
+        .WithDescription("Interactive AI agent for project assistance")
+        .WithExample(new[] { "agent", "--project", "./MyApp", "--provider", "claude" })
+        .WithExample(new[] { "agent", "--autonomous" });
 });
 
 return await app.RunAsync(args).ConfigureAwait(false);
