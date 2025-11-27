@@ -17,7 +17,7 @@ public class AnalysisOrchestrator
     private readonly ILLMClient _llmClient;
     private readonly TelemetryService _telemetryService;
     private readonly IMemLeakDetector _memLeakDetectorService;
-
+    
     public AnalysisOrchestrator(
         IEnumerable<IAnalyzer> analyzers,
         ILLMClient llmClient,
