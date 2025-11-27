@@ -14,7 +14,7 @@ public class GeminiClient : ILLMClient
 {
     private readonly HttpClient _httpClient;
     private readonly string _apiKey;
-    private readonly string _model = "gemini-1.5-flash";
+    private readonly string _model = "gemini-2.0-flash-exp"; // Latest experimental model
     private readonly AsyncRetryPolicy _retryPolicy;
 
     public GeminiClient(HttpClient httpClient, string apiKey)
@@ -30,7 +30,8 @@ public class GeminiClient : ILLMClient
 
     public async Task<string> GenerateResponseAsync(string prompt, CancellationToken cancellationToken = default)
     {
-        var url = $"https://generativelanguage.googleapis.com/v1beta/models/{_model}:generateContent?key={_apiKey}";
+        // Using v1beta with gemini-2.0-flash (matches working curl)
+        var url = $"https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent";
         
         var requestBody = new
         {
@@ -50,7 +51,12 @@ public class GeminiClient : ILLMClient
         {
             try
             {
-                var response = await _httpClient.PostAsJsonAsync(url, requestBody, cancellationToken);
+                // Add API key as header (X-goog-api-key) instead of query parameter
+                var request = new HttpRequestMessage(HttpMethod.Post, url);
+                request.Headers.Add("X-goog-api-key", _apiKey);
+                request.Content = JsonContent.Create(requestBody);
+                
+                var response = await _httpClient.SendAsync(request, cancellationToken);
                 
                 if (!response.IsSuccessStatusCode)
                 {

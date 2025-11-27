@@ -74,6 +74,31 @@ public sealed class AnalyzeDumpCommand : AsyncCommand<AnalyzeDumpSettings>
             var outputPath = settings.OutputPath ?? Path.ChangeExtension(settings.DumpPath, ".md");
             var reportPath = await reporter.GenerateReportAsync(result, outputPath);
 
+            // Export JSON if requested
+            if (settings.ExportJson)
+            {
+                var jsonPath = Path.ChangeExtension(reportPath, ".json");
+                var jsonData = new
+                {
+                    Timestamp = DateTime.Now,
+                    DumpPath = settings.DumpPath,
+                    Provider = settings.Provider,
+                    result.RootCause,
+                    result.CodeFix,
+                    result.ConfidenceScore,
+                    Diagnostics = result.Diagnostics.Select(d => new
+                    {
+                        d.Type,
+                        d.Severity,
+                        d.Description
+                    })
+                };
+                var json = System.Text.Json.JsonSerializer.Serialize(jsonData, new System.Text.Json.JsonSerializerOptions { WriteIndented = true });
+                await File.WriteAllTextAsync(jsonPath, json);
+                AnsiConsole.Write(new Markup("[green]JSON exported to:[/] "));
+                AnsiConsole.WriteLine(jsonPath);
+            }
+
             AnsiConsole.MarkupLine($"[green]Analysis completed in {stopwatch.Elapsed.TotalSeconds:F1}s[/]");
             AnsiConsole.Write(new Markup("[green]Report saved to:[/] "));
             AnsiConsole.WriteLine(reportPath);

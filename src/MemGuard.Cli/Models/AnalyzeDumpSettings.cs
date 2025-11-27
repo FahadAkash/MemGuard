@@ -30,4 +30,9 @@ public sealed class AnalyzeDumpSettings : CommandSettings
     [Description("Report format (Markdown, PDF, HTML)")]
     [DefaultValue("Markdown")]
     public string Format { get; set; } = "Markdown";
+
+    [CommandOption("--export-json")]
+    [Description("Also export analysis as JSON")]
+    [DefaultValue(false)]
+    public bool ExportJson { get; set; }
 }

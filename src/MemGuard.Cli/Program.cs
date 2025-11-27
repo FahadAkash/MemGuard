@@ -25,6 +25,17 @@ app.Configure(config =>
         .WithDescription("Restore files from a backup")
         .WithExample(new[] { "restore", "--list" })
         .WithExample(new[] { "restore", "--latest" });
+    
+    // Monitor command
+    config.AddCommand<MonitorCommand>("monitor")
+        .WithDescription("Monitor a live process for memory issues")
+        .WithExample(new[] { "monitor", "--process", "MyApp", "--interval", "5" })
+        .WithExample(new[] { "monitor", "--pid", "1234", "--alert-threshold", "500" });
+    
+    // Compare command
+    config.AddCommand<CompareCommand>("compare")
+        .WithDescription("Compare two memory dumps")
+        .WithExample(new[] { "compare", "before.dmp", "after.dmp", "--output", "diff.md" });
 });
 
 return await app.RunAsync(args).ConfigureAwait(false);
