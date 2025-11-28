@@ -5,6 +5,7 @@ obj/
 *.suo
 *.vs/
 DumpFile/
+
 # NuGet
 *.nupkg
 *.snupkg
@@ -23,3 +24,6 @@ Thumbs.db
 
 # Ollama (local AI)
 ollama/
+
+# Examples (test projects, not for production)
+examples/

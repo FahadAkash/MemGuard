@@ -31,4 +31,9 @@ public sealed class AgentSettings : CommandSettings
     [Description("Maximum conversation turns")]
     [DefaultValue(50)]
     public int MaxTurns { get; set; } = 50;
+
+    [CommandOption("--test")]
+    [Description("Run agent loop test")]
+    [DefaultValue(false)]
+    public bool Test { get; set; }
 }
