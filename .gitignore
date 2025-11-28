@@ -23,3 +23,12 @@ Thumbs.db
 
 # Ollama (local AI)
 ollama/
+
+# MemGuard
+*.dmp
+.memguard/
+*.log
+TestResults/
+GeneratedReports/
+*_report.md
+*_report.json
