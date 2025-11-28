@@ -109,6 +109,11 @@ public class ContextBuilder
         prompt.AppendLine("  \"expected_outcome\": \"What you expect to achieve...\"");
         prompt.AppendLine("}");
         prompt.AppendLine();
+        prompt.AppendLine("IMPORTANT JSON RULES:");
+        prompt.AppendLine("1. Do NOT use string concatenation (e.g., \"text\" + \"more text\"). Use full strings.");
+        prompt.AppendLine("2. Escape special characters (newlines as \\n, quotes as \\\").");
+        prompt.AppendLine("3. Ensure valid JSON syntax.");
+        prompt.AppendLine();
         prompt.AppendLine("For TASK_COMPLETE:");
         prompt.AppendLine("{");
         prompt.AppendLine("  \"thought\": \"Task is complete because...\",");

@@ -1,3 +1,4 @@
+// Enhanced by MemGuard AI
 using System;
 using System.Collections.Generic;
 using System.Threading;
@@ -14,22 +15,22 @@ namespace LeakyApp
         {
             Console.WriteLine("LeakyApp started. PID: " + System.Diagnostics.Process.GetCurrentProcess().Id);
 
-            // for (int i = 0; i < LeakIterations; i++)
-            // {
-            //     LeakMemory();
-            //     Thread.Sleep(10); // Simulate some work
-            // }
-
-            Console.WriteLine("LeakyApp finished.");
-            // Console.ReadKey(); // Keep the app running so we can observe memory usage
-        }
-
-        static void LeakMemory()
-        {
-            if (_leak.Count < MaxLeakSize)
+            for (int i = 0; i < LeakIterations; i++)
             {
-                _leak.Add(new string('A', 1024)); // Allocate 1KB string
+                // Simulate a memory leak by adding strings to a list.
+                _leak.Add(new string('x', 1024)); // 1KB string
+
+                // Optionally limit the leak size to prevent excessive memory usage.
+                if (_leak.Count > MaxLeakSize)
+                {
+                    _leak.RemoveAt(0); // Remove the oldest entry
+                }
+
+                Thread.Sleep(10); // Simulate some work
             }
+
+            Console.WriteLine("Leaking complete. Press any key to exit.");
+            Console.ReadKey();
         }
     }
 }
