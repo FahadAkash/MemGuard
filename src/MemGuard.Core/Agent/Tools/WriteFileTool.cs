@@ -53,11 +53,18 @@ public class WriteFileTool : AgentTool
         }
 
         string? backupId = null;
+        string? oldContent = null;
 
-        // Create backup if file exists and backup is requested
-        if (args.CreateBackup && File.Exists(args.Path) && _backupManager != null)
+        // Read old content if file exists (for diff)
+        if (File.Exists(args.Path))
         {
-            backupId = await _backupManager.CreateBackupAsync(new[] { args.Path }, $"Auto-backup before write to {Path.GetFileName(args.Path)}");
+            oldContent = await _fileManager.ReadFileAsync(args.Path);
+            
+            // Create backup if requested
+            if (args.CreateBackup && _backupManager != null)
+            {
+                backupId = await _backupManager.CreateBackupAsync(new[] { args.Path }, $"Auto-backup before write to {Path.GetFileName(args.Path)}");
+            }
         }
 
         // Write the file
@@ -67,7 +74,8 @@ public class WriteFileTool : AgentTool
         {
             ["filePath"] = args.Path,
             ["bytesWritten"] = System.Text.Encoding.UTF8.GetByteCount(args.Content),
-            ["backupCreated"] = backupId != null
+            ["backupCreated"] = backupId != null,
+            ["fileModified"] = oldContent != null
         };
 
         if (backupId != null)
@@ -75,13 +83,85 @@ public class WriteFileTool : AgentTool
             metadata["backupId"] = backupId;
         }
 
-        var output = $"Successfully wrote to {args.Path}";
-        if (backupId != null)
+        // Build output with diff
+        var output = new System.Text.StringBuilder();
+        
+        if (oldContent != null)
         {
-            output += $"\nBackup created: {backupId}";
+            output.AppendLine($"✏️ Modified: {args.Path}");
+            output.AppendLine();
+            
+            // Generate simple diff
+            var diff = GenerateSimpleDiff(oldContent, args.Content);
+            output.AppendLine("📊 Changes:");
+            output.AppendLine(diff);
+        }
+        else
+        {
+            output.AppendLine($"✨ Created: {args.Path}");
+            output.AppendLine($"📏 Size: {args.Content.Length} characters");
         }
 
-        return ToolResult.CreateSuccess(Name, output, metadata);
+        if (backupId != null)
+        {
+            output.AppendLine();
+            output.AppendLine($"💾 Backup: {backupId}");
+        }
+
+        return ToolResult.CreateSuccess(Name, output.ToString(), metadata);
+    }
+
+    private string GenerateSimpleDiff(string oldContent, string newContent)
+    {
+        var oldLines = oldContent.Split('\n');
+        var newLines = newContent.Split('\n');
+        var diff = new System.Text.StringBuilder();
+        
+        int addedLines = 0;
+        int removedLines = 0;
+        int unchangedLines = 0;
+        
+        // Simple line-by-line comparison
+        int maxLines = Math.Max(oldLines.Length, newLines.Length);
+        for (int i = 0; i < Math.Min(oldLines.Length, newLines.Length); i++)
+        {
+            if (oldLines[i] != newLines[i])
+            {
+                if (i < oldLines.Length) removedLines++;
+                if (i < newLines.Length) addedLines++;
+            }
+            else
+            {
+                unchangedLines++;
+            }
+        }
+        
+        // Count remaining lines
+        if (newLines.Length > oldLines.Length)
+            addedLines += (newLines.Length - oldLines.Length);
+        else if (oldLines.Length > newLines.Length)
+            removedLines += (oldLines.Length - newLines.Length);
+        
+        diff.AppendLine($"  + {addedLines} additions");
+        diff.AppendLine($"  - {removedLines} deletions");
+        diff.AppendLine($"  = {unchangedLines} unchanged");
+        diff.AppendLine();
+        
+        // Show first few changed lines
+        diff.AppendLine("Preview (first 5 changes):");
+        int changesShown = 0;
+        for (int i = 0; i < Math.Min(oldLines.Length, newLines.Length) && changesShown < 5; i++)
+        {
+            if (oldLines[i] != newLines[i])
+            {
+                diff.AppendLine($"  Line {i + 1}:");
+                diff.AppendLine($"    - {oldLines[i].Trim()}");
+                diff.AppendLine($"    + {newLines[i].Trim()}");
+                changesShown++;
+            }
+        }
+        
+        return diff.ToString();
     }
 
     private class WriteFileArgs

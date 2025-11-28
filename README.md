@@ -251,6 +251,241 @@ dotnet run -- restore --backup-id 20251127_220000
 
 ---
 
+## 📚 Complete CLI Commands Reference
+
+### Command Overview Diagram
+
+```mermaid
+graph TD
+    A[MemGuard CLI] --> B[analyze]
+    A --> C[agent]
+    A --> D[fix]
+    A --> E[monitor]
+    A --> F[compare]
+    A --> G[restore]
+    
+    B --> B1[Memory Dump Analysis]
+    C --> C1[AI Development Assistant]
+    D --> D1[Auto-Fix Code]
+    E --> E1[Live Process Monitoring]
+    F --> F1[Dump Comparison]
+    G --> G1[Backup Management]
+    
+    style A fill:#4CAF50,stroke:#333,stroke-width:3px,color:#fff
+    style B fill:#2196F3,stroke:#333,stroke-width:2px,color:#fff
+    style C fill:#FF9800,stroke:#333,stroke-width:2px,color:#fff
+    style D fill:#9C27B0,stroke:#333,stroke-width:2px,color:#fff
+    style E fill:#00BCD4,stroke:#333,stroke-width:2px,color:#fff
+    style F fill:#E91E63,stroke:#333,stroke-width:2px,color:#fff
+    style G fill:#607D8B,stroke:#333,stroke-width:2px,color:#fff
+```
+
+### 1. `analyze` - Memory Dump Analysis
+
+Analyze .NET memory dumps using AI to detect leaks, deadlocks, and performance issues.
+
+```bash
+memguard analyze <dump-file> [options]
+```
+
+**Options:**
+| Option | Description | Default |
+|--------|-------------|---------|
+| `--provider <name>` | AI provider (gemini/claude/grok/deepseek/ollama) | gemini |
+| `--api-key <key>` | API key for the AI provider | Required |
+| `--model <name>` | Specific model to use | Provider default |
+| `--export-json` | Export results as JSON | false |
+| `--export-pdf` | Generate PDF report | false |
+| `--output <path>` | Output file path | - |
+
+**Examples:**
+```bash
+# Basic analysis with Gemini
+memguard analyze crash.dmp --provider gemini --api-key YOUR_KEY
+
+# Analysis with Claude and PDF export
+memguard analyze crash.dmp --provider claude --api-key YOUR_KEY --export-pdf
+
+# JSON output for CI/CD
+memguard analyze crash.dmp --provider gemini --api-key YOUR_KEY --export-json --output results.json
+```
+
+---
+
+### 2. `agent` - AI Development Assistant
+
+Start an autonomous AI agent that can read, write, analyze code, build projects, and more.
+
+```bash
+memguard agent [options]
+```
+
+**Options:**
+| Option | Description | Default |
+|--------|-------------|---------|
+| `--provider <name>` | AI provider | gemini |
+| `--api-key <key>` | API key | Required |
+| `--project <path>` | Project directory | Current dir |
+| `--autonomous` | No confirmations (runs autonomously) | false |
+| `--max-turns <n>` | Maximum agent iterations | 50 |
+| `--test` | Test mode (verify setup) | false |
+
+**Available Agent Tools:**
+- ✅ `read_file` - Read any file in the project
+- ✅ `write_file` - Create/modify files (auto-backup!)
+- ✅ `list_directory` - Browse directory structure
+- ✅ `search_files` - Find files by pattern
+- ✅ `analyze_project` - Understand project architecture
+- ✅ `run_command` - Execute shell commands
+- ✅ `verify_changes` - Build & test projects
+- ✅ `kill_process` - Terminate processes
+- ✅ `restore_backup` - Undo changes
+- ✅ `answer_question` - General conversation
+
+**Examples:**
+```bash
+# Interactive mode (asks for confirmation)
+memguard agent --project ./MyApp --provider gemini --api-key YOUR_KEY
+
+# Autonomous mode (no confirmations)
+memguard agent --project ./MyApp --provider gemini --api-key YOUR_KEY --autonomous
+
+# Test agent setup
+memguard agent --test --provider gemini --api-key YOUR_KEY
+```
+
+**Sample Tasks:**
+```
+Task > Fix memory leaks in UserService.cs
+Task > Add unit tests for PaymentProcessor
+Task > Analyze crash.dmp and fix the root cause
+Task > Build the project and check for errors
+Task > Refactor authentication to use DI
+```
+
+---
+
+### 3. `fix` - Auto-Fix Code
+
+Automatically fix code based on memory dump analysis.
+
+```bash
+memguard fix <dump-file> [options]
+```
+
+**Options:**
+| Option | Description | Default |
+|--------|-------------|---------|
+| `--provider <name>` | AI provider | gemini |
+| `--api-key <key>` | API key | Required |
+| `--project <path>` | Project directory | Required |
+| `--dry-run` | Preview changes without applying | false |
+| `--auto-approve` | Apply fixes without confirmation | false |
+
+**Examples:**
+```bash
+# Preview fixes
+memguard fix crash.dmp --project ./MyApp --dry-run --provider gemini --api-key YOUR_KEY
+
+# Apply fixes with confirmation
+memguard fix crash.dmp --project ./MyApp --provider gemini --api-key YOUR_KEY
+
+# Auto-approve all fixes
+memguard fix crash.dmp --project ./MyApp --auto-approve --provider gemini --api-key YOUR_KEY
+```
+
+---
+
+### 4. `monitor` - Live Process Monitoring
+
+Monitor .NET processes in real-time with memory alerts.
+
+```bash
+memguard monitor [options]
+```
+
+**Options:**
+| Option | Description | Default |
+|--------|-------------|---------|
+| `--process <name>` | Process name to monitor | - |
+| `--pid <number>` | Process ID to monitor | - |
+| `--interval <seconds>` | Sampling interval | 5 |
+| `--duration <seconds>` | Monitoring duration (0=forever) | 0 |
+| `--alert-threshold <mb>` | Memory alert threshold (MB) | - |
+| `--output <path>` | JSON export path | - |
+
+**Examples:**
+```bash
+# Monitor by process name
+memguard monitor --process MyApp --interval 5
+
+# Monitor with alerts
+memguard monitor --process MyApp --alert-threshold 500 --output monitor.json
+
+# Monitor by PID for 1 hour
+memguard monitor --pid 1234 --duration 3600
+```
+
+---
+
+### 5. `compare` - Dump Comparison
+
+Compare two memory dumps to find regressions and memory growth.
+
+```bash
+memguard compare <dump1> <dump2> [options]
+```
+
+**Options:**
+| Option | Description | Default |
+|--------|-------------|---------|
+| `--output <path>` | Report output path | console |
+| `--format <type>` | Output format (markdown/json) | markdown |
+
+**Examples:**
+```bash
+# Console comparison
+memguard compare before.dmp after.dmp
+
+# Markdown report
+memguard compare before.dmp after.dmp --output comparison.md
+
+# JSON export
+memguard compare before.dmp after.dmp --format json --output comparison.json
+```
+
+---
+
+### 6. `restore` - Backup Management
+
+Manage and restore file backups created by the agent.
+
+```bash
+memguard restore [options]
+```
+
+**Options:**
+| Option | Description | Default |
+|--------|-------------|---------|
+| `--list` | List all available backups | - |
+| `--latest` | Restore latest backup | - |
+| `--backup-id <id>` | Restore specific backup | - |
+| `--project <path>` | Project directory | Current dir |
+
+**Examples:**
+```bash
+# List all backups
+memguard restore --list
+
+# Restore latest backup
+memguard restore --latest
+
+# Restore specific backup
+memguard restore --backup-id 20251127_220000
+```
+
+---
+
 ## 🏗️ Project Architecture
 
 ### Solution Structure
