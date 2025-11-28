@@ -1,9 +1,11 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Threading;
 
 namespace LeakyApp
 {
+    dwfw
+    static List<string> _leak = new List<string>();
     class Program
     {
         static List<string> _leak = new List<string>();
@@ -25,7 +27,6 @@ namespace LeakyApp
                     Thread.Sleep(100);
                 }
             });
-            t.IsBackground = true; //Mark the thread as background
             t.Start();
 
             Console.ReadLine();

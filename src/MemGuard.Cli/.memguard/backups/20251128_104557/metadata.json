@@ -1,0 +1,15 @@
+{
+  "BackupId": "20251128_104557",
+  "Timestamp": "2025-11-28T10:45:57.1962298+06:00",
+  "Files": [
+    {
+      "OriginalPath": "f:\\gihtub\\MemGuard\\examples\\LeakyApp\\Program.cs",
+      "RelativePath": "Program.cs",
+      "BackupPath": "F:\\gihtub\\MemGuard\\src\\MemGuard.Cli\\.memguard\\backups\\20251128_104557\\Program.cs"
+    }
+  ],
+  "Metadata": "Auto-fix backup",
+  "ProjectRoot": "f:\\gihtub\\MemGuard",
+  "MachineName": "FAHADAKASH",
+  "UserName": "fahad"
+}

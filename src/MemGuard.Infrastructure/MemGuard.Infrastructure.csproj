@@ -1,4 +1,4 @@
-﻿<Project Sdk="Microsoft.NET.Sdk">
+<Project Sdk="Microsoft.NET.Sdk">
 
   <ItemGroup>
     <ProjectReference Include="..\MemGuard.Core\MemGuard.Core.csproj" />
@@ -8,6 +8,7 @@
     <PackageReference Include="Microsoft.Diagnostics.Runtime" />
     <PackageReference Include="OpenTelemetry" />
     <PackageReference Include="DiffPlex" />
+    <PackageReference Include="Spectre.Console" />
   </ItemGroup>
 
   <PropertyGroup>

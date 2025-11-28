@@ -52,13 +52,14 @@ public static class PromptBuilder
     /// </summary>
     /// <param name="diagnostics">Diagnostic information</param>
     /// <param name="projectPath">Path to the project (optional)</param>
+    /// <param name="sourceFiles">Dictionary of file paths and their contents</param>
     /// <returns>Built prompt for fixes</returns>
-    public static string BuildFixPrompt(IReadOnlyList<DiagnosticBase> diagnostics, string? projectPath = null)
+    public static string BuildFixPrompt(IReadOnlyList<DiagnosticBase> diagnostics, string? projectPath = null, IDictionary<string, string>? sourceFiles = null)
     {
         ArgumentNullException.ThrowIfNull(diagnostics);
 
         var sb = new StringBuilder();
-        sb.AppendLine("You are an expert .NET debugger and code fixer. Analyze the following diagnostic information and provide ACTIONABLE code fixes.");
+        sb.AppendLine("You are an expert .NET debugger and code fixer. Analyze the following diagnostic information and source code to provide ACTIONABLE code fixes.");
         sb.AppendLine();
         sb.AppendLine("For each issue, provide:");
         sb.AppendLine("1. The EXACT file path (relative to project root)");
@@ -77,6 +78,19 @@ public static class PromptBuilder
         {
             sb.AppendLine($"Project Path: {projectPath}");
             sb.AppendLine();
+        }
+
+        if (sourceFiles != null && sourceFiles.Count > 0)
+        {
+            sb.AppendLine("Source Code:");
+            foreach (var file in sourceFiles)
+            {
+                sb.AppendLine($"File: {file.Key}");
+                sb.AppendLine("```csharp");
+                sb.AppendLine(file.Value);
+                sb.AppendLine("```");
+                sb.AppendLine();
+            }
         }
 
         sb.AppendLine("Diagnostic Information:");

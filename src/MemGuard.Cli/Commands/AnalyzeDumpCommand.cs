@@ -61,14 +61,52 @@ public sealed class AnalyzeDumpCommand : AsyncCommand<AnalyzeDumpSettings>
 
             // Display summary to console
             AnsiConsole.WriteLine();
-            var table = new Table();
-            table.AddColumn("Metric");
-            table.AddColumn("Value");
-            table.AddRow("Confidence", $"{result!.ConfidenceScore:P0}");
-            var rootCauseDisplay = result.RootCause.Length > 50 ? result.RootCause.Substring(0, 47) + "..." : result.RootCause;
-            table.AddRow("Root Cause", rootCauseDisplay.EscapeMarkup());
-            table.AddRow("Diagnostics", result.Diagnostics.Count.ToString());
-            AnsiConsole.Write(table);
+            
+            // Before/After Diagnostics Comparison Table
+            AnsiConsole.MarkupLine("[yellow]═══ Diagnostics Analysis ═══[/]");
+            AnsiConsole.WriteLine();
+            
+            var diagTable = new Table();
+            diagTable.AddColumn(new TableColumn("[cyan]Diagnostic Type[/]").LeftAligned());
+            diagTable.AddColumn(new TableColumn("[yellow]Before (Detected)[/]").LeftAligned());
+            diagTable.AddColumn(new TableColumn("[green]After (AI Analysis)[/]").LeftAligned());
+            diagTable.AddColumn(new TableColumn("[red]Severity[/]").Centered());
+            
+            foreach (var diagnostic in result!.Diagnostics)
+            {
+                var severityColor = diagnostic.Severity switch
+                {
+                    SeverityLevel.Critical => "red",
+                    SeverityLevel.Error => "orange1",
+                    SeverityLevel.Warning => "yellow",
+                    _ => "grey"
+                };
+                
+                var beforeStatus = $"[grey]Issue detected[/]";
+                var afterStatus = diagnostic.Type == "Heap" ? "Memory fragmentation identified" :
+                                diagnostic.Type == "Deadlock" ? "Deadlock pattern analyzed" :
+                                "Issue characterized by AI";
+                
+                diagTable.AddRow(
+                    $"[cyan]{diagnostic.Type.EscapeMarkup()}[/]",
+                    beforeStatus,
+                    $"[green]{afterStatus.EscapeMarkup()}[/]",
+                    $"[{severityColor}]{diagnostic.Severity}[/]"
+                );
+            }
+            
+            AnsiConsole.Write(diagTable);
+            AnsiConsole.WriteLine();
+            
+            // Summary metrics
+            var summaryTable = new Table();
+            summaryTable.AddColumn("Metric");
+            summaryTable.AddColumn("Value");
+            summaryTable.AddRow("[yellow]AI Confidence[/]", $"[green]{result.ConfidenceScore:P0}[/]");
+            var rootCauseDisplay = result.RootCause.Length > 70 ? result.RootCause.Substring(0, 67) + "..." : result.RootCause;
+            summaryTable.AddRow("[yellow]Root Cause[/]", rootCauseDisplay.EscapeMarkup());
+            summaryTable.AddRow("[yellow]Total Issues[/]", $"[red]{result.Diagnostics.Count}[/]");
+            AnsiConsole.Write(summaryTable);
 
             // Generate report
             var outputPath = settings.OutputPath ?? Path.ChangeExtension(settings.DumpPath, ".md");

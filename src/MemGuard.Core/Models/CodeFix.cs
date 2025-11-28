@@ -9,4 +9,7 @@ public record CodeFix(
     string NewContent,
     string UnifiedDiff,
     int StartLine,
-    int EndLine);
+    int EndLine,
+    int LinesAdded = 0,
+    int LinesRemoved = 0,
+    int LinesModified = 0);

@@ -5,6 +5,7 @@ using DiffPlex.DiffBuilder;
 using DiffPlex.DiffBuilder.Model;
 using MemGuard.Core.Interfaces;
 using MemGuard.Core.Models;
+using Spectre.Console;
 
 namespace MemGuard.Infrastructure;
 
@@ -76,21 +77,23 @@ public class CodeFixer : ICodeFixer
         var fixes = new List<CodeFix>();
 
         // Pattern to match code blocks with file paths
-        // Looking for patterns like:
-        // File: path/to/file.cs
-        // ```csharp
-        // code here
-        // ```
         var filePattern = @"(?:File|Path):\s*([^\n]+)";
         var codeBlockPattern = @"```(?:csharp|cs|diff)?\s*\n(.*?)\n```";
 
         var fileMatches = Regex.Matches(aiResponse, filePattern, RegexOptions.IgnoreCase);
         var codeMatches = Regex.Matches(aiResponse, codeBlockPattern, RegexOptions.Singleline);
 
+        AnsiConsole.MarkupLine($"[grey]DEBUG: Found {fileMatches.Count} file matches and {codeMatches.Count} code blocks[/]");
+
         for (int i = 0; i < Math.Min(fileMatches.Count, codeMatches.Count); i++)
         {
-            var filePath = fileMatches[i].Groups[1].Value.Trim();
+            var rawPath = fileMatches[i].Groups[1].Value.Trim();
+            // Clean up markdown formatting like **File.cs** or `File.cs`
+            var filePath = rawPath.Trim('*', '`', ' ', '\r', '\n');
+            
             var newContent = codeMatches[i].Groups[1].Value;
+
+            AnsiConsole.MarkupLine($"[grey]DEBUG: Processing match {i+1}: {filePath}[/]");
 
             // Make path absolute
             if (!Path.IsPathRooted(filePath))
@@ -99,18 +102,43 @@ public class CodeFixer : ICodeFixer
             }
 
             if (!File.Exists(filePath))
-                continue;
+            {
+                AnsiConsole.MarkupLine($"[yellow]DEBUG: File not found: {filePath}[/]");
+                // Try to find the file recursively in the project if exact path fails
+                var fileName = Path.GetFileName(filePath);
+                var foundFiles = Directory.GetFiles(projectPath, fileName, SearchOption.AllDirectories);
+                if (foundFiles.Length == 1)
+                {
+                    filePath = foundFiles[0];
+                    AnsiConsole.MarkupLine($"[green]DEBUG: Found file at: {filePath}[/]");
+                }
+                else
+                {
+                    continue;
+                }
+            }
 
-            var originalContent = File.ReadAllText(filePath);
-            var diff = GenerateUnifiedDiff(originalContent, newContent, filePath);
+            try 
+            {
+                var originalContent = File.ReadAllText(filePath);
+                var diff = DiffFormatter.GenerateColorizedDiff(originalContent, newContent, Path.GetFileName(filePath));
+                var stats = DiffFormatter.GetChangeStatistics(originalContent, newContent);
 
-            fixes.Add(new CodeFix(
-                filePath,
-                originalContent,
-                newContent,
-                diff,
-                1,
-                originalContent.Split('\n').Length));
+                fixes.Add(new CodeFix(
+                    filePath,
+                    originalContent,
+                    newContent,
+                    diff,
+                    1,
+                    originalContent.Split('\n').Length,
+                    stats.LinesAdded,
+                    stats.LinesRemoved,
+                    stats.LinesModified));
+            }
+            catch (Exception ex)
+            {
+                AnsiConsole.MarkupLine($"[red]DEBUG: Error processing fix for {filePath}: {ex.Message}[/]");
+            }
         }
 
         return fixes;
