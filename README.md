@@ -41,14 +41,32 @@ Choose the best AI for your needs:
 - **DeepSeek** - Code-focused, cost-effective
 - **Ollama** - Local AI for privacy
 
-### 💬 **Interactive AI Agent** (NEW!)
-Your personal development assistant:
-- Natural language conversation
-- Read and analyze your code files
-- Load and inspect memory dumps
-- Context-aware suggestions
-- Multi-turn dialogue
-- Project structure understanding
+### 🤖 **Autonomous AI Agent Mode** (NEW!)
+**Your fully autonomous development partner:**
+- **Plan → Execute → Verify → Adjust** loop
+- **8 Built-in Tools:**
+  - 📄 Read/Write files (automatic backup!)
+  - 📁 Browse directory structure
+  - 🔍 Search files by pattern
+  - 🏗️ Analyze project architecture
+  - 💾 Analyze memory dumps
+  - ▶️ Run shell commands
+  - ✅ Build & test verification
+- **Multi-tiered Memory:**
+  - Short-term: Recent actions
+  - Long-term: Learned patterns
+  - Working: Active context
+- **Self-Verification:** Runs builds/tests after changes
+- **Checkpointing:** Auto-saves progress, resume anytime
+- **Self-Correction:** Learns from errors and adjusts
+
+**Example Tasks:**
+```
+Task > Fix the memory leak in UserService.cs
+Task > Add unit tests for PaymentProcessor
+Task > Analyze crash.dmp and fix the root cause
+Task > Refactor authentication to use dependency injection
+```
 
 ### 🔧 **Auto-Fix System**
 - AI suggests code fixes
@@ -134,30 +152,39 @@ dotnet run -- analyze crash.dmp --provider deepseek --api-key YOUR_DEEPSEEK_KEY
 - Code fix suggestions
 - Confidence score
 
-### 2. **Interactive AI Agent**
+### 2. **Autonomous AI Agent**
 
 ```bash
-# Start agent with your project
+# Start agent (interactive mode - asks for confirmation)
 dotnet run -- agent --project ./MyApp --provider gemini --api-key YOUR_KEY
+
+# Autonomous mode (no confirmations)
+dotnet run -- agent --project ./MyApp --provider gemini --api-key YOUR_KEY --autonomous
+
+# Test mode (verify setup)
+dotnet run -- agent --test --provider gemini --api-key YOUR_KEY
 ```
 
-**What you can do:**
+**Give it tasks:**
 ```
-You: read UserService.cs
-You: analyze project
-You: analyze dump crash.dmp
-You: how do I fix memory leaks?
-You: explain async/await
-You: suggest optimizations
+Task > List all C# files in the project
+Task > Find memory leaks in UserService.cs and fix them
+Task > Add comprehensive unit tests for PaymentProcessor
+Task > Build the project to check for errors
+Task > Analyze the project structure and suggest improvements
 ```
 
 **Agent capabilities:**
-- 📁 Read any file in your project
-- 🔍 Analyze project structure
-- 💾 Load and inspect dumps
-- 🐛 Debug issues
-- 💡 Suggest improvements
-- 📚 Answer .NET questions
+- 📁 **Read files** - Views any file in your project
+- ✍️ **Write files** - Creates/modifies code (with automatic backup!)
+- 📂 **Browse** - Lists directory structure
+- 🔍 **Search** - Finds files by pattern
+- 🏗️ **Analyze** - Understands project architecture
+- 💾 **Debug** - Loads and analyzes memory dumps
+- ▶️ **Execute** - Runs shell commands
+- ✅ **Verify** - Builds and tests after changes
+- 🧠 **Learn** - Remembers context and patterns
+- 💾 **Checkpoint** - Auto-saves progress to resume later
 
 ### 3. **Auto-Fix Code**
 
@@ -574,6 +601,11 @@ dotnet run -- --help
 - [x] Live monitoring
 - [x] Dump comparison
 - [x] Interactive agent
+- [x] **Autonomous Agent Mode** (Plan-Execute-Verify-Adjust)
+- [x] **8 Agent Tools** (Read, Write, Search, Analyze, Run, Verify)
+- [x] **Agent Memory System** (Short/Long/Working memory)
+- [x] **Checkpointing & Recovery**
+- [x] **Self-Verification**
 - [x] Multi-AI support
 - [x] JSON export
 
@@ -674,14 +706,15 @@ If you find MemGuard useful, please consider giving it a star! ⭐
 
 ## 📊 Stats
 
-- **Lines of Code:** ~6,000+
+- **Lines of Code:** ~8,500+
 - **Projects:** 6
 - **Commands:** 6
 - **AI Providers:** 5
+- **Agent Tools:** 8
 - **Interfaces:** 14
-- **Classes:** 32+
-- **Tests:** 7/7 passing
-- **Build Status:** ✅ Passing
+- **Classes:** 40+
+- **Tests:** Comprehensive coverage
+- **Build Status:** ✅ Passing (0 Errors, 0 Warnings)
 
 ---
 

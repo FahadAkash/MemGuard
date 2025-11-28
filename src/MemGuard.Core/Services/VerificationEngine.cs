@@ -49,11 +49,36 @@ public class VerificationEngine
 
         try
         {
+            // Determine the working directory and arguments
+            string workingDir = _workingDirectory;
+            string arguments = command;
+
+            if (!string.IsNullOrEmpty(projectPath))
+            {
+                // If project path is provided, use its directory as working directory
+                if (File.Exists(projectPath))
+                {
+                    workingDir = Path.GetDirectoryName(projectPath) ?? _workingDirectory;
+                    arguments = $"{command} \"{Path.GetFileName(projectPath)}\"";
+                }
+                else if (Directory.Exists(projectPath))
+                {
+                    workingDir = projectPath;
+                    arguments = command;
+                }
+                else
+                {
+                    result.Success = false;
+                    result.Errors.Add($"Project path not found: {projectPath}");
+                    return result;
+                }
+            }
+
             var processStartInfo = new ProcessStartInfo
             {
                 FileName = "dotnet",
-                Arguments = string.IsNullOrEmpty(projectPath) ? command : $"{command} \"{projectPath}\"",
-                WorkingDirectory = _workingDirectory,
+                Arguments = arguments,
+                WorkingDirectory = workingDir,
                 RedirectStandardOutput = true,
                 RedirectStandardError = true,
                 UseShellExecute = false,

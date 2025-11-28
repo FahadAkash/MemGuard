@@ -64,7 +64,8 @@ public sealed class AgentCommand : AsyncCommand<AgentSettings>
                 new AnalyzeProjectTool(fileManager),
                 new AnalyzeDumpTool(dumpParser),
                 new RunCommandTool(),
-                new VerifyChangesTool()
+                new VerifyChangesTool(),
+                new KillProcessTool() // NEW: Process management
             );
 
             // Display configuration
@@ -111,10 +112,26 @@ public sealed class AgentCommand : AsyncCommand<AgentSettings>
                 AnsiConsole.MarkupLine($"[grey]Starting agent loop for task:[/] {userInput.EscapeMarkup()}");
                 AnsiConsole.WriteLine();
 
-                var result = await loop.RunAsync(userInput, config);
+                // Create cancellation token source for graceful shutdown
+                using var cts = new CancellationTokenSource();
+                
+                // Handle Ctrl+C
+                Console.CancelKeyPress += (s, e) =>
+                {
+                    e.Cancel = true; // Prevent immediate termination
+                    cts.Cancel();
+                    AnsiConsole.MarkupLine("[yellow]Cancellation requested. Stopping agent...[/]");
+                };
 
-                // Display Final Result
-                DisplayFinalResult(result);
+                try 
+                {
+                    var result = await loop.RunAsync(userInput, config, cts.Token);
+                    DisplayFinalResult(result);
+                }
+                catch (OperationCanceledException)
+                {
+                    AnsiConsole.MarkupLine("[yellow]Agent execution cancelled by user.[/]");
+                }
             }
 
             AnsiConsole.MarkupLine("[green]Goodbye! 👋[/]");
