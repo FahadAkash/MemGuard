@@ -170,8 +170,13 @@ public sealed class FixDumpCommand : AsyncCommand<FixDumpSettings>
             services.AddSingleton<ILLMClient>(sp => 
             {
                 var httpClient = sp.GetRequiredService<IHttpClientFactory>().CreateClient(nameof(GeminiClient));
-                var apiKey = settings.ApiKey ?? "AIzaSyBwO0jyYU9LBexFLO2W6yU6JLovY8HgqXo";
-                return new GeminiClient(httpClient, apiKey);
+                
+                if (string.IsNullOrEmpty(settings.ApiKey))
+                {
+                    throw new InvalidOperationException("API key is required. Use --api-key option or set MEMGUARD_GEMINI_KEY environment variable.");
+                }
+                
+                return new GeminiClient(httpClient, settings.ApiKey);
             });
         }
         else

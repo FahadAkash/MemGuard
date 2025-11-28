@@ -27,3 +27,13 @@ ollama/
 
 # MemGuard internal (checkpoints, backups - these are local working files)
 .memguard/
+
+# Security - NEVER commit these!
+*.env
+.env.*
+!.env.example
+appsettings.Development.json
+secrets.json
+*.key
+*.pem
+*.p12
