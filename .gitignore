@@ -25,5 +25,5 @@ Thumbs.db
 # Ollama (local AI)
 ollama/
 
-# Examples (test projects, not for production)
-examples/
+# MemGuard internal (checkpoints, backups - these are local working files)
+.memguard/
