@@ -930,7 +930,7 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 
 **Fahad Akash**
 - GitHub: [@FahadAkash](https://github.com/FahadAkash)
-- Email: your.email@example.com
+- Email: fahadakash12@gmail.com
 - Project: [MemGuard](https://github.com/FahadAkash/MemGuard)
 
 ---
