@@ -6,6 +6,8 @@
 [![License](https://img.shields.io/badge/license-MIT-green.svg)](LICENSE)
 [![Build](https://img.shields.io/badge/build-passing-brightgreen.svg)](https://github.com/FahadAkash/MemGuard)
 
+![MemGuard Banner](Assets/mainbanner.jpg)
+
 > Transform memory dump analysis from hours of manual work into minutes with AI-powered insights, automatic code fixes, and an interactive development assistant.
 
 ---
