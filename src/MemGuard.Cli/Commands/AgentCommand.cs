@@ -26,7 +26,7 @@ public sealed class AgentCommand : AsyncCommand<AgentSettings>
             var services = new ServiceCollection();
             services.AddHttpClient();
             services.AddSingleton<IFileManager, FileManager>();
-            services.AddSingleton<IDumpParser, DumpParser>();
+            services.AddTransient<IDumpParser, DumpParser>(); // Transient to avoid state corruption
             var serviceProvider = services.BuildServiceProvider();
             
             var factory = new LLMProviderFactory(serviceProvider.GetRequiredService<IHttpClientFactory>());
@@ -59,13 +59,15 @@ public sealed class AgentCommand : AsyncCommand<AgentSettings>
             registry.RegisterTools(
                 new ReadFileTool(fileManager),
                 new WriteFileTool(fileManager), // Enabled writing!
+                new RestoreBackupTool(fileManager), // NEW: Restore capability
                 new ListDirectoryTool(),
                 new SearchFilesTool(),
                 new AnalyzeProjectTool(fileManager),
-                new AnalyzeDumpTool(dumpParser),
+                // new AnalyzeDumpTool(dumpParser), // DISABLED: Causes AccessViolationException crashes in ClrMD
                 new RunCommandTool(),
                 new VerifyChangesTool(),
-                new KillProcessTool() // NEW: Process management
+                new KillProcessTool(),
+                new AnswerQuestionTool() // NEW: For general conversation
             );
 
             // Display configuration
@@ -81,56 +83,76 @@ public sealed class AgentCommand : AsyncCommand<AgentSettings>
             AnsiConsole.Write(table);
             AnsiConsole.WriteLine();
 
-            // Main conversation loop
-            while (true)
+            // Create cancellation token source for graceful shutdown (shared across all tasks)
+            using var globalCts = new CancellationTokenSource();
+            ConsoleCancelEventHandler? cancelHandler = null;
+            bool cancelRequested = false;
+            
+            // Handle Ctrl+C (register once, outside the loop)
+            cancelHandler = (s, e) =>
             {
-                // Get user input
-                var userInput = AnsiConsole.Ask<string>("[cyan]Task >[/]");
-                
-                if (string.IsNullOrWhiteSpace(userInput)) continue;
-                if (IsExitCommand(userInput)) break;
-
-                // Configure Agent Loop
-                var config = new AgentLoopConfig
+                if (!cancelRequested)
                 {
-                    MaxIterations = settings.MaxTurns,
-                    MaxExecutionTime = TimeSpan.FromMinutes(10),
-                    Verbose = true,
-                    ProjectPath = settings.ProjectPath ?? Environment.CurrentDirectory,
-                    AutoSaveCheckpoints = true,
-                    RequireConfirmation = !settings.Autonomous,
-                    
-                    // UI Callbacks
-                    OnProgress = (state, action) => DisplayProgress(state, action),
-                    OnIterationComplete = (state) => DisplayIterationResult(state),
-                    OnError = (error) => AnsiConsole.MarkupLine($"[red]Error:[/] {error.EscapeMarkup()}")
-                };
-
-                // Create and Run Agent
-                var loop = new AgentLoop(ai, registry);
-                
-                AnsiConsole.MarkupLine($"[grey]Starting agent loop for task:[/] {userInput.EscapeMarkup()}");
-                AnsiConsole.WriteLine();
-
-                // Create cancellation token source for graceful shutdown
-                using var cts = new CancellationTokenSource();
-                
-                // Handle Ctrl+C
-                Console.CancelKeyPress += (s, e) =>
-                {
-                    e.Cancel = true; // Prevent immediate termination
-                    cts.Cancel();
-                    AnsiConsole.MarkupLine("[yellow]Cancellation requested. Stopping agent...[/]");
-                };
-
-                try 
-                {
-                    var result = await loop.RunAsync(userInput, config, cts.Token);
-                    DisplayFinalResult(result);
+                    e.Cancel = true; // Prevent immediate termination on first Ctrl+C
+                    cancelRequested = true;
+                    globalCts.Cancel();
+                    AnsiConsole.MarkupLine("[yellow]Cancellation requested. Press Ctrl+C again to force exit.[/]");
                 }
-                catch (OperationCanceledException)
+                // On second Ctrl+C, e.Cancel remains false, allowing normal termination
+            };
+            Console.CancelKeyPress += cancelHandler;
+
+            try
+            {
+                // Main conversation loop
+                while (!globalCts.IsCancellationRequested)
                 {
-                    AnsiConsole.MarkupLine("[yellow]Agent execution cancelled by user.[/]");
+                    // Get user input
+                    var userInput = AnsiConsole.Ask<string>("[cyan]Task >[/]");
+                    
+                    if (string.IsNullOrWhiteSpace(userInput)) continue;
+                    if (IsExitCommand(userInput)) break;
+
+                    // Configure Agent Loop
+                    var config = new AgentLoopConfig
+                    {
+                        MaxIterations = settings.MaxTurns,
+                        MaxExecutionTime = TimeSpan.FromMinutes(10),
+                        Verbose = true,
+                        ProjectPath = settings.ProjectPath ?? Environment.CurrentDirectory,
+                        AutoSaveCheckpoints = true,
+                        RequireConfirmation = !settings.Autonomous,
+                        
+                        // UI Callbacks
+                        OnProgress = (state, action) => DisplayProgress(state, action),
+                        OnIterationComplete = (state) => DisplayIterationResult(state),
+                        OnError = (error) => AnsiConsole.MarkupLine($"[red]Error:[/] {error.EscapeMarkup()}")
+                    };
+
+                    // Create and Run Agent
+                    var loop = new AgentLoop(ai, registry);
+                    
+                    AnsiConsole.MarkupLine($"[grey]Starting agent loop for task:[/] {userInput.EscapeMarkup()}");
+                    AnsiConsole.WriteLine();
+
+                    try 
+                    {
+                        var result = await loop.RunAsync(userInput, config, globalCts.Token);
+                        DisplayFinalResult(result);
+                    }
+                    catch (OperationCanceledException)
+                    {
+                        AnsiConsole.MarkupLine("[yellow]Agent execution cancelled by user.[/]");
+                        break; // Exit the loop after cancellation
+                    }
+                }
+            }
+            finally
+            {
+                // Unregister the event handler
+                if (cancelHandler != null)
+                {
+                    Console.CancelKeyPress -= cancelHandler;
                 }
             }
 

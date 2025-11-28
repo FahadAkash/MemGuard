@@ -20,7 +20,7 @@ public class DumpParser : IDumpParser
             throw new FileNotFoundException($"Dump file not found: {dumpPath}");
 
         // Clean up previous session if any
-        Dispose();
+        // Dispose(); // Removed: DumpParser is now Transient, no need to reuse instance
 
         try
         {
@@ -41,11 +41,18 @@ public class DumpParser : IDumpParser
 
     public void Dispose()
     {
-        _runtime?.Dispose();
-        _runtime = null;
-        
-        _dataTarget?.Dispose();
-        _dataTarget = null;
+        try 
+        {
+            _runtime?.Dispose();
+            _runtime = null;
+            
+            _dataTarget?.Dispose();
+            _dataTarget = null;
+        }
+        catch
+        {
+            // Ignore disposal errors to prevent crashing
+        }
         
         GC.SuppressFinalize(this);
     }

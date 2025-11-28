@@ -65,6 +65,22 @@ public class AgentLoop
                     var errorMsg = $"Action '{action.ToolName}' failed: {action.Result?.Error}";
                     state.Errors.Add(errorMsg);
                     config.OnError?.Invoke(errorMsg);
+                    
+                    // INTELLIGENT RETRY DETECTION: Check if we're repeating the same failed action
+                    var recentSimilarFailures = state.ExecutedActions
+                        .TakeLast(5)
+                        .Where(a => a.ToolName == action.ToolName && !a.IsSuccess)
+                        .Count();
+                    
+                    if (recentSimilarFailures >= 3)
+                    {
+                        var recursionMsg = $"Detected repetitive failures: '{action.ToolName}' failed {recentSimilarFailures} times in a row. Stopping to prevent infinite loop.";
+                        state.Errors.Add(recursionMsg);
+                        config.OnError?.Invoke(recursionMsg);
+                        state.IsComplete = true;
+                        state.CompletionReason = "Stopped due to repetitive failures (infinite loop detected)";
+                        break;
+                    }
                 }
 
                 // Notify iteration complete

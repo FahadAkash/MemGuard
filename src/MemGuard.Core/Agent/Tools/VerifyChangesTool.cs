@@ -42,9 +42,22 @@ public class VerifyChangesTool : AgentTool
             var args = JsonSerializer.Deserialize<VerifyArgs>(parameters, new JsonSerializerOptions { PropertyNameCaseInsensitive = true });
             if (args == null) return ToolResult.Failure(Name, "Invalid parameters");
 
-            var workingDir = args.ProjectPath != null && Directory.Exists(args.ProjectPath) 
-                ? args.ProjectPath 
-                : Environment.CurrentDirectory;
+            var workingDir = Environment.CurrentDirectory;
+            
+            // Determine working directory from project path
+            if (!string.IsNullOrEmpty(args.ProjectPath))
+            {
+                if (File.Exists(args.ProjectPath))
+                {
+                    // If it's a file (e.g., .csproj), use its directory
+                    workingDir = Path.GetDirectoryName(args.ProjectPath) ?? Environment.CurrentDirectory;
+                }
+                else if (Directory.Exists(args.ProjectPath))
+                {
+                    // If it's a directory, use it directly
+                    workingDir = args.ProjectPath;
+                }
+            }
 
             var engine = new VerificationEngine(workingDir);
             VerificationResult result;

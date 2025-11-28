@@ -94,9 +94,10 @@ public class ContextBuilder
         prompt.AppendLine("INSTRUCTIONS:");
         prompt.AppendLine("1. Analyze the history and memory to determine the next step.");
         prompt.AppendLine("2. Select the most appropriate tool.");
-        prompt.AppendLine("3. If you need to read a file, use ReadFile.");
-        prompt.AppendLine("4. If you need to run a command, use RunCommand.");
-        prompt.AppendLine("5. If the task is complete, return status: TASK_COMPLETE.");
+        prompt.AppendLine("3. If the user asks a general question or greeting, use 'answer_question' AND then return TASK_COMPLETE in the next step.");
+        prompt.AppendLine("4. If you need to read a file, use ReadFile.");
+        prompt.AppendLine("5. If you need to run a command, use RunCommand.");
+        prompt.AppendLine("6. If the task is complete, return status: TASK_COMPLETE.");
         prompt.AppendLine();
 
         // 9. Response Format

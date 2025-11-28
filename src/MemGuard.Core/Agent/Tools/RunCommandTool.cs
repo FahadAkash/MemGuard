@@ -26,6 +26,11 @@ public class RunCommandTool : AgentTool
       ""type"": ""integer"",
       ""description"": ""Timeout in seconds (default: 60)"",
       ""default"": 60
+    },
+    ""runInBackground"": {
+      ""type"": ""boolean"",
+      ""description"": ""Run command in background without waiting for completion (useful for starting servers or long-running apps)"",
+      ""default"": false
     }
   },
   ""required"": [""command""]
@@ -61,7 +66,8 @@ public class RunCommandTool : AgentTool
                 CreateNoWindow = true
             };
 
-            using var process = new Process { StartInfo = processInfo };
+            // Don't use 'using' here if running in background, as we need the process to stay alive
+            var process = new Process { StartInfo = processInfo };
             var outputBuilder = new StringBuilder();
             var errorBuilder = new StringBuilder();
 
@@ -81,51 +87,71 @@ public class RunCommandTool : AgentTool
             process.BeginOutputReadLine();
             process.BeginErrorReadLine();
 
-            var timeout = TimeSpan.FromSeconds(args.TimeoutSeconds);
-            var completed = await Task.Run(() => process.WaitForExit((int)timeout.TotalMilliseconds), cancellationToken);
-
-            if (!completed)
+            if (args.RunInBackground)
             {
-                process.Kill();
-                return ToolResult.Failure(Name, $"Command timed out after {args.TimeoutSeconds} seconds");
+                // Wait a short time to catch immediate startup errors
+                await Task.Delay(2000, cancellationToken);
+                
+                if (process.HasExited && process.ExitCode != 0)
+                {
+                     var error = errorBuilder.ToString();
+                     return ToolResult.Failure(Name, $"Command failed immediately: {error}");
+                }
+
+                return ToolResult.CreateSuccess(Name, 
+                    $"Command started in background (PID: {process.Id}).\nCommand: {args.Command}\nWorking Directory: {workingDir}", 
+                    new Dictionary<string, object> { ["pid"] = process.Id, ["started"] = true });
             }
 
-            var exitCode = process.ExitCode;
-            var output = outputBuilder.ToString();
-            var error = errorBuilder.ToString();
+            // Normal synchronous execution
+            using (process) 
+            {
+                var timeout = TimeSpan.FromSeconds(args.TimeoutSeconds);
+                var completed = await Task.Run(() => process.WaitForExit((int)timeout.TotalMilliseconds), cancellationToken);
 
-            var result = new StringBuilder();
-            result.AppendLine($"Command: {args.Command}");
-            result.AppendLine($"Working Directory: {workingDir}");
-            result.AppendLine($"Exit Code: {exitCode}");
-            result.AppendLine();
-            
-            if (!string.IsNullOrWhiteSpace(output))
-            {
-                result.AppendLine("Output:");
-                result.AppendLine(output);
-            }
+                if (!completed)
+                {
+                    process.Kill();
+                    return ToolResult.Failure(Name, $"Command timed out after {args.TimeoutSeconds} seconds");
+                }
 
-            if (!string.IsNullOrWhiteSpace(error))
-            {
-                result.AppendLine("Errors:");
-                result.AppendLine(error);
-            }
+                var exitCode = process.ExitCode;
+                var output = outputBuilder.ToString();
+                var error = errorBuilder.ToString();
 
-            var metadata = new Dictionary<string, object>
-            {
-                ["exitCode"] = exitCode,
-                ["workingDirectory"] = workingDir,
-                ["command"] = args.Command
-            };
+                var result = new StringBuilder();
+                result.AppendLine($"Command: {args.Command}");
+                result.AppendLine($"Working Directory: {workingDir}");
+                result.AppendLine($"Exit Code: {exitCode}");
+                result.AppendLine();
+                
+                if (!string.IsNullOrWhiteSpace(output))
+                {
+                    result.AppendLine("Output:");
+                    result.AppendLine(output);
+                }
 
-            if (exitCode == 0)
-            {
-                return ToolResult.CreateSuccess(Name, result.ToString(), metadata);
-            }
-            else
-            {
-                return ToolResult.Failure(Name, result.ToString());
+                if (!string.IsNullOrWhiteSpace(error))
+                {
+                    result.AppendLine("Errors:");
+                    result.AppendLine(error);
+                }
+
+                var metadata = new Dictionary<string, object>
+                {
+                    ["exitCode"] = exitCode,
+                    ["workingDirectory"] = workingDir,
+                    ["command"] = args.Command
+                };
+
+                if (exitCode == 0)
+                {
+                    return ToolResult.CreateSuccess(Name, result.ToString(), metadata);
+                }
+                else
+                {
+                    return ToolResult.Failure(Name, result.ToString());
+                }
             }
         }
         catch (Exception ex)
@@ -139,5 +165,6 @@ public class RunCommandTool : AgentTool
         public string Command { get; set; } = string.Empty;
         public string WorkingDirectory { get; set; } = string.Empty;
         public int TimeoutSeconds { get; set; } = 60;
+        public bool RunInBackground { get; set; } = false;
     }
 }
