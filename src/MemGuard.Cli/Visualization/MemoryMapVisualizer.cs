@@ -103,7 +103,7 @@ public class MemoryMapVisualizer
         foreach (var (typeName, size, count) in topTypes.Take(10))
         {
             table.AddRow(
-                typeName,
+                Markup.Escape(typeName),
                 $"[cyan]{count:N0}[/]",
                 $"[yellow]{FormatBytes(size)}[/]"
             );
