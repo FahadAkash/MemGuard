@@ -176,7 +176,7 @@ public sealed class FixDumpCommand : AsyncCommand<FixDumpSettings>
                     throw new InvalidOperationException("API key is required. Use --api-key option or set MEMGUARD_GEMINI_KEY environment variable.");
                 }
                 
-                return new GeminiClient(httpClient, settings.ApiKey);
+                return new GeminiClient(httpClient, settings.ApiKey, settings.Model);
             });
         }
         else

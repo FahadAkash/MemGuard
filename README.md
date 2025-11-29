@@ -183,6 +183,9 @@ dotnet run -- analyze crash.dmp --provider gemini --api-key YOUR_KEY --export-js
 dotnet run -- analyze crash.dmp --provider claude --api-key YOUR_CLAUDE_KEY
 dotnet run -- analyze crash.dmp --provider grok --api-key YOUR_GROK_KEY
 dotnet run -- analyze crash.dmp --provider deepseek --api-key YOUR_DEEPSEEK_KEY
+
+# Specify a custom model (e.g., gemini-1.5-pro, claude-3-opus)
+dotnet run -- analyze crash.dmp --provider gemini --model gemini-1.5-pro --api-key YOUR_KEY
 ```
 
 **Output:**

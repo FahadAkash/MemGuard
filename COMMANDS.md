@@ -18,6 +18,10 @@ memguard analyze crash.dmp --provider gemini --api-key YOUR_KEY --export-pdf --o
 
 # Compliance mode
 memguard analyze crash.dmp --provider claude --api-key YOUR_KEY --compliance hipaa --redact-pii
+
+# Custom Model Selection
+memguard analyze crash.dmp --provider gemini --model gemini-1.5-pro --api-key YOUR_KEY
+memguard analyze crash.dmp --provider claude --model claude-3-opus-20240229 --api-key YOUR_KEY
 ```
 
 ### Auto-Fix

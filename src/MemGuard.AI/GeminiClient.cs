@@ -16,10 +16,13 @@ public class GeminiClient : ILLMClient
     private readonly string _apiKey;
     private readonly AsyncRetryPolicy _retryPolicy;
 
-    public GeminiClient(HttpClient httpClient, string apiKey)
+    private readonly string _model;
+
+    public GeminiClient(HttpClient httpClient, string apiKey, string? model = null)
     {
         _httpClient = httpClient;
         _apiKey = apiKey;
+        _model = model ?? "gemini-2.0-flash";
         
         _retryPolicy = Policy
             .Handle<HttpRequestException>()
@@ -29,8 +32,8 @@ public class GeminiClient : ILLMClient
 
     public async Task<string> GenerateResponseAsync(string prompt, CancellationToken cancellationToken = default)
     {
-        // Using v1beta with gemini-2.0-flash (matches working curl)
-        var url = $"https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent";
+        // Using v1beta with specified model (default: gemini-2.0-flash)
+        var url = $"https://generativelanguage.googleapis.com/v1beta/models/{_model}:generateContent";
         
         var requestBody = new
         {

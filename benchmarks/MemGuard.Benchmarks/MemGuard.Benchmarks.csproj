@@ -1,0 +1,23 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <TargetFramework>net8.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+    <ManagePackageVersionsCentrally>false</ManagePackageVersionsCentrally>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="BenchmarkDotNet" Version="0.13.12" />
+    <PackageReference Include="Microsoft.Diagnostics.Runtime" Version="3.0.442202" />
+    <PackageReference Include="Moq" Version="4.20.70" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\..\src\MemGuard.Core\MemGuard.Core.csproj" />
+    <ProjectReference Include="..\..\src\MemGuard.Infrastructure\MemGuard.Infrastructure.csproj" />
+    <ProjectReference Include="..\..\src\MemGuard.Cli\MemGuard.Cli.csproj" />
+  </ItemGroup>
+
+</Project>

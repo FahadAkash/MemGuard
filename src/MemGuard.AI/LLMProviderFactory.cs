@@ -20,7 +20,7 @@ public class LLMProviderFactory
         
         return provider.ToLowerInvariant() switch
         {
-            "gemini" => new GeminiClient(httpClient, apiKey),
+            "gemini" => new GeminiClient(httpClient, apiKey, model),
             "claude" => new ClaudeClient(httpClient, apiKey, model),
             "grok" => new GrokClient(httpClient, apiKey, model),
             "deepseek" => new DeepSeekClient(httpClient, apiKey, model),
