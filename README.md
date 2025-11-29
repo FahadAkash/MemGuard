@@ -16,13 +16,16 @@
 
 MemGuard is a **comprehensive AI-powered platform** for .NET developers that combines:
 - 🔍 **Memory Dump Analysis** - Detect leaks, deadlocks, and fragmentation
+- 🛡️ **Security Detection** - IOC, YARA rules, exploit heuristics (NEW!)
+- 🎨 **Modern CLI Visualization** - Beautiful ASCII art traces and graphs (NEW!)
 - 🤖 **AI-Powered Diagnostics** - Get root cause analysis from 5 AI providers
 - 🔧 **Auto-Fix** - Automatically fix code based on AI suggestions
 - 💬 **Interactive Agent** - Conversational AI assistant for your projects
 - 📊 **Live Monitoring** - Real-time process memory tracking
 - 📈 **Dump Comparison** - Find memory regressions between versions
+- 🔌 **Plugin System** - Extensible with custom detectors and exporters (NEW!)
 
-**Perfect for:** Developers, DevOps Engineers, QA Teams, Performance Engineers, and Enterprises
+**Perfect for:** Developers, DevOps Engineers, QA Teams, Performance Engineers, Security Teams, and Enterprises
 
 ---
 
@@ -90,6 +93,41 @@ Task > Refactor authentication to use dependency injection
 - Regression identification
 - Color-coded changes
 - Markdown reports
+
+### 🛡️ **Security Detection** (NEW!)
+**Advanced threat detection for enterprise security:**
+- **IOC Detection** - Scan for malicious IPs, domains, mutexes, registry keys
+- **YARA Integration** - Custom rule-based malware pattern matching
+- **Exploit Heuristics** - Detect ROP chains, shellcode, ETW tampering, debugger evasion
+- **Symbol Resolution** - Enhanced stack traces via Microsoft Symbol Server
+- **Threat Scoring** - Automatic risk assessment (0-100 scale)
+
+### 🎨 **Modern CLI Visualization** (NEW!)
+**Beautiful, informative output for crash analysis:**
+- **ASCII Art Stack Traces** - Tree-based rendering with color-coding
+- **Deadlock Cycle Diagrams** - Visual representation of thread locks
+- **Memory Maps** - Bar charts, heap segments, fragmentation heat maps
+- **Call Graphs** - Interactive thread interaction visualization
+- **Color-Coded Frames** - User code vs system code highlighting
+
+### 📊 **Dual-Level Explainability** (NEW!)
+**Reports tailored to your audience:**
+- **Executive Summaries** - Plain-English for non-technical stakeholders
+  - Business impact assessment
+  - Severity classification
+  - Recommended actions
+- **Technical Reports** - Detailed diagnostics for engineers
+  - Full stack traces
+  - Evidence and metrics
+  - Code fix suggestions
+
+### 🔌 **Plugin System** (NEW!)
+**Extend MemGuard with custom logic:**
+- **Detector Plugins** - Add custom analysis algorithms
+- **Exporter Plugins** - Create custom report formats
+- **Auto-Discovery** - Plugins loaded from `~/.memguard/plugins`
+- **Simple API** - Implement `IDetectorPlugin` or `IExporterPlugin`
+- **Isolated Execution** - Plugins run safely without affecting core
 
 ---
 

@@ -29,6 +29,18 @@
     <PackageVersion Include="OpenTelemetry" Version="1.9.0" />
     <PackageVersion Include="DiffPlex" Version="1.7.2" />
 
+    <!-- Security & Detection -->
+    <PackageVersion Include="dnYara" Version="4.2.0" />
+    
+    <!-- Cloud Services -->
+    <PackageVersion Include="AWSSDK.S3" Version="3.7.400" />
+    <PackageVersion Include="Google.Cloud.Storage.V1" Version="4.10.0" />
+    
+    <!-- SIEM & Logging -->
+    <PackageVersion Include="Serilog" Version="4.1.0" />
+    <PackageVersion Include="Serilog.Sinks.Splunk" Version="4.1.0" />
+    <PackageVersion Include="prometheus-net" Version="8.2.1" />
+
     <!-- Test -->
     <PackageVersion Include="coverlet.collector" Version="6.0.0" />
     <PackageVersion Include="Microsoft.NET.Test.Sdk" Version="17.8.0" />

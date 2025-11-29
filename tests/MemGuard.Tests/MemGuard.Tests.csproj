@@ -22,6 +22,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\..\src\MemGuard.Core\MemGuard.Core.csproj" />
+    <ProjectReference Include="..\..\src\MemGuard.Infrastructure\MemGuard.Infrastructure.csproj" />
   </ItemGroup>
 
 </Project>

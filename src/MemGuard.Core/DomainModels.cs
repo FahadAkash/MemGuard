@@ -63,6 +63,63 @@ public record AsyncCorruptionDiagnostic(
     string StackTrace) : DiagnosticBase("AsyncCorruption", $"Async state machine {StateMachineId} shows signs of corruption", SeverityLevel.Error);
 
 /// <summary>
+/// YARA rule match diagnostic
+/// </summary>
+/// <param name="Matches">List of YARA rule matches</param>
+/// <param name="TotalRulesScanned">Total number of rules scanned</param>
+/// <param name="ScanDuration">Time taken for scan</param>
+public record YaraDiagnostic(
+    IReadOnlyList<YaraMatch> Matches,
+    int TotalRulesScanned,
+    TimeSpan ScanDuration) : DiagnosticBase("YARA", $"Found {Matches.Count} YARA rule matches", Matches.Count > 0 ? SeverityLevel.Critical : SeverityLevel.Info);
+
+/// <summary>
+/// Individual YARA rule match
+/// </summary>
+public record YaraMatch(
+    string RuleName,
+    string Namespace,
+    IReadOnlyList<string> Tags,
+    string Severity,
+    IReadOnlyList<string> MatchedStrings);
+
+/// <summary>
+/// Indicator of Compromise detection diagnostic
+/// </summary>
+/// <param name="Indicators">Detected IOC indicators</param>
+/// <param name="ThreatScore">Overall threat assessment score (0-100)</param>
+public record IocDiagnostic(
+    IReadOnlyList<IocMatch> Indicators,
+    int ThreatScore) : DiagnosticBase("IOC", $"Detected {Indicators.Count} indicators of compromise", Indicators.Count > 0 ? SeverityLevel.Critical : SeverityLevel.Info);
+
+/// <summary>
+/// Individual IOC match
+/// </summary>
+public record IocMatch(
+    string Type, // "IP", "Domain", "FilePath", "Registry", "Mutex"
+    string Value,
+    string ThreatLevel, // "Critical", "High", "Medium", "Low"
+    string Description);
+
+/// <summary>
+/// Exploit technique detection diagnostic
+/// </summary>
+/// <param name="Techniques">Detected exploitation techniques</param>
+/// <param name="OverallRiskScore">Overall risk assessment (0.0-1.0)</param>
+public record ExploitDiagnostic(
+    IReadOnlyList<ExploitTechnique> Techniques,
+    double OverallRiskScore) : DiagnosticBase("Exploit", $"Detected {Techniques.Count} potential exploitation techniques", Techniques.Count > 0 ? SeverityLevel.Critical : SeverityLevel.Info);
+
+/// <summary>
+/// Individual exploit technique
+/// </summary>
+public record ExploitTechnique(
+    string Name, // "ROP Chain", "Shellcode", "ETW Tampering", "Debugger Evasion"
+    string Description,
+    double Confidence,
+    IReadOnlyList<string> Evidence);
+
+/// <summary>
 /// Severity levels for diagnostics
 /// </summary>
 public enum SeverityLevel

@@ -1,4 +1,4 @@
-﻿﻿
+﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 17
 VisualStudioVersion = 17.0.31903.59
@@ -14,6 +14,12 @@ EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MemGuard.Infrastructure", "MemGuard.Infrastructure\MemGuard.Infrastructure.csproj", "{88F9A058-8C02-4B14-B574-65A779BC7582}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MemGuard.Tests", "..\tests\MemGuard.Tests\MemGuard.Tests.csproj", "{E76D084D-FF52-441B-B6C3-63602F35A046}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MemGuard.Compliance", "MemGuard.Compliance\MemGuard.Compliance.csproj", "{CC165254-A261-4735-B6BE-8EB636CFE4D4}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MemGuard.Integrations", "MemGuard.Integrations\MemGuard.Integrations.csproj", "{7EF57EE4-9B93-4FFF-A3BC-C446665C2473}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MemGuard.Plugins", "MemGuard.Plugins\MemGuard.Plugins.csproj", "{2F063DE3-CC98-4F52-BF93-430939B16D22}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -48,5 +54,17 @@ Global
 		{E76D084D-FF52-441B-B6C3-63602F35A046}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{E76D084D-FF52-441B-B6C3-63602F35A046}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{E76D084D-FF52-441B-B6C3-63602F35A046}.Release|Any CPU.Build.0 = Release|Any CPU
+		{CC165254-A261-4735-B6BE-8EB636CFE4D4}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{CC165254-A261-4735-B6BE-8EB636CFE4D4}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{CC165254-A261-4735-B6BE-8EB636CFE4D4}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{CC165254-A261-4735-B6BE-8EB636CFE4D4}.Release|Any CPU.Build.0 = Release|Any CPU
+		{7EF57EE4-9B93-4FFF-A3BC-C446665C2473}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{7EF57EE4-9B93-4FFF-A3BC-C446665C2473}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{7EF57EE4-9B93-4FFF-A3BC-C446665C2473}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{7EF57EE4-9B93-4FFF-A3BC-C446665C2473}.Release|Any CPU.Build.0 = Release|Any CPU
+		{2F063DE3-CC98-4F52-BF93-430939B16D22}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{2F063DE3-CC98-4F52-BF93-430939B16D22}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{2F063DE3-CC98-4F52-BF93-430939B16D22}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{2F063DE3-CC98-4F52-BF93-430939B16D22}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 EndGlobal

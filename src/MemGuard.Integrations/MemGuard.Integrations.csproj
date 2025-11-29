@@ -7,14 +7,16 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="Microsoft.Diagnostics.Runtime" />
-    <PackageReference Include="OpenTelemetry" />
-    <PackageReference Include="DiffPlex" />
+    <PackageReference Include="AWSSDK.S3" />
+    <PackageReference Include="Google.Cloud.Storage.V1" />
+    <PackageReference Include="Serilog" />
+    <PackageReference Include="Serilog.Sinks.Splunk" />
+    <PackageReference Include="prometheus-net" />
+    <PackageReference Include="System.Net.Http.Json" />
   </ItemGroup>
 
   <ItemGroup>
     <ProjectReference Include="..\MemGuard.Core\MemGuard.Core.csproj" />
-    <ProjectReference Include="..\MemGuard.Plugins\MemGuard.Plugins.csproj" />
   </ItemGroup>
 
 </Project>
